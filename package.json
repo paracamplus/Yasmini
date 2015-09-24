@@ -1,0 +1,17 @@
+{
+  "name": "org.codegradx.js.yasmini",
+  "version": "0.0.1",
+  "description": "light framework, inspired by Jasmine, for javascript programming exercises to be marked by the CodeGradX infrastructure",
+  "main": "yasmini.js",
+  "scripts": {
+    "test": "jasmine"
+  },
+  "author": "Christian Queinnec <Christian.Queinnec@CodeGradX.org>",
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+  },
+  "devDependencies": {
+    "jasmine-node": "^2.3.4"
+  }
+}

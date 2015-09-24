@@ -1,0 +1,12 @@
+{
+  "undef": true,
+  "unused": true,
+  "curly": true,
+  "freeze": true,
+  "funcscope": true,
+  "strict": true,
+  "node": true,
+  "module": true,
+  "globals": [
+  ]
+}
