@@ -1,17 +1,42 @@
 {
-  "name": "org.codegradx.js.yasmini",
-  "version": "0.0.1",
+  "name": "yasmini",
+  "version": "0.1.1",
+  "engines": {
+    "node": ">= 0.12.7"
+  },
   "description": "light framework, inspired by Jasmine, for javascript programming exercises to be marked by the CodeGradX infrastructure",
+  "keywords": [ "unit testing", "program grading"],
+  "homepage": "https://github.com/paracamplus/Yasmini",
+  "bugs": {
+    "url": "https://github.com/paracamplus/Yasmini/issues",
+    "author": "Christian.Queinnec@CodeGradX.org"
+  },
+  "license": "ISC",
+  "author": {
+    "name": "Christian Queinnec",
+    "email": "Christian.Queinnec@CodeGradX.org",
+    "url": "http://lip6.fr/Christian.Queinnec/"
+  },
+  "files": [
+    ".jshintrc",
+    "LICENSE",
+    "Makefile",
+    "package.json",
+    "README.md",
+    "yasmini.js",
+    "spec/*.js"
+  ],
   "main": "yasmini.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/paracamplus/Yasmini"
+  },
   "scripts": {
     "test": "jasmine"
   },
-  "author": "Christian Queinnec <Christian.Queinnec@CodeGradX.org>",
-  "license": "ISC",
-  "private": true,
   "dependencies": {
   },
   "devDependencies": {
-    "jasmine-node": "^2.3.4"
+    "jasmine": "^2.3.4"
   }
 }
