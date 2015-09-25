@@ -57,6 +57,7 @@ function Description (msg, f, options) {
   this.message = msg;
   this.behavior = f;
   this.verbose = false;
+  this.specificationIntended = undefined;
   enrich(this, options || {});
   // Internal fields:
   this.specifications = [];
@@ -65,6 +66,7 @@ function Description (msg, f, options) {
   this.exception = null;
   this.specificationAttempted = 0;
   this.specificationSuccessful = 0;
+  this.pass = true;
 }
 Description.prototype.run = function () {
   this.result = this.behavior.call(this);
@@ -78,17 +80,19 @@ Description.prototype.endHook = function () {
 
 function describe (msg, f, options) {
   var description = new Description(msg, f, options);
-  var previous_it = it;
   try {
     description.beginHook();
-    module.exports.it = it = mk_it(description);
+    inner_it = mk_it(description);
     description.run();
   } catch (exc) {
     description.exception = exc;
     description.raisedException = true;
   } finally {
-    module.exports.it = wrong_it;
-    it = previous_it;
+    inner_it = wrong_it;
+    if ( description.specificationIntended &&
+         description.specificationAttempted != description.specificationIntended ) {
+       description.pass = false;
+   }
     description.endHook();
   }
   return description;
@@ -100,6 +104,7 @@ function Specification (description, msg, f, options) {
   this.message = msg;
   this.behavior = f;
   this.stopOnFailure = false;
+  this.expectationIntended = undefined;
   this.verbose = description.verbose;
   enrich(this, options || {});
   // Internal fields:
@@ -109,6 +114,7 @@ function Specification (description, msg, f, options) {
   this.exception = null;
   this.expectationAttempted = 0;
   this.expectationSuccessful = 0;
+  this.pass = true;
 }
 Specification.prototype.run = function () {
   this.result = this.behavior.call(this);
@@ -123,28 +129,38 @@ Specification.prototype.endHook = function () {
 function mk_it (description) {
   var newit = function (msg, f, options) {
     var spec = new Specification(description, msg, f, options);
-    var previous_expect = expect;
     try {
       spec.beginHook();
       description.specificationAttempted++;
-      module.exports.expect = expect = mk_expect(spec);
+      inner_expect = mk_expect(spec);
       spec.run();
       description.specificationSuccessful++;
     } catch (exc) {
       spec.exception = exc;
       spec.raisedException = true;
       if ( spec.stopOnFailure ) {
+        spec.pass = false;
         throw exc;
       }
     } finally {
-      module.exports.expect = wrong_expect;
-      expect = previous_expect;
+      inner_expect = wrong_expect;
       spec.expectations.forEach(function (expectation) {
         if ( expectation.pass ) {
           spec.expectationSuccessful++;
+        } else {
+          // One failed expectation fails the entire specification!
+          spec.pass = false;
         }
         expectation.endHook();
       });
+      if ( spec.expectationIntended &&
+           spec.expectationIntended != spec.expectationAttempted ) {
+         spec.pass = false;
+      }
+      // One failed specification fails the entire description
+      if ( ! spec.pass ) {
+        description.pass = false;
+      }
       spec.endHook();
     }
     return spec;
@@ -169,7 +185,7 @@ function Expectation (spec, options) {
 }
 Expectation.prototype.run = function () {
   this.beginHook();
-  //this.endHook(); will be done before Specification.endHook()
+  // this.endHook() will be run just before Specification.endHook()
   return this;
 };
 Expectation.prototype.beginHook = function () {
@@ -181,6 +197,29 @@ Expectation.prototype.endHook = function () {
 Expectation.prototype.toBe = function (expected, options) {
   enrich(this, options || {});
   if (this.raisedException || this.actual !== expected) {
+    this.pass = false;
+    if ( this.stopOnFailure ) {
+      var exc = new Error(this);
+      throw exc;
+    }
+  }
+  return this;
+};
+Expectation.prototype.toBeTruthy = function (options) {
+  enrich(this, options || {});
+  if (this.raisedException || !this.actual) {
+    this.pass = false;
+    if ( this.stopOnFailure ) {
+      var exc = new Error(this);
+      throw exc;
+    }
+  }
+  return this;
+};
+Expectation.prototype.toMatch = function (regexp, options) {
+  enrich(this, options || {});
+  regexp = new RegExp(regexp); // Check regexp
+  if (this.raisedException || ! regexp.test(this.actual.toString())) {
     this.pass = false;
     if ( this.stopOnFailure ) {
       var exc = new Error(this);
@@ -251,17 +290,23 @@ function mk_expect (spec) {
 function wrong_it (msg, f) {
   throw "Not within describe()" + msg + f;
 }
-var it = wrong_it;
+var inner_it = wrong_it;
+function front_it () {
+  return inner_it.apply(this, arguments);
+}
 
 function wrong_expect (actual) {
   throw "Not within it()" + actual;
 }
-var expect = wrong_expect;
+var inner_expect = wrong_expect;
+function front_expect () {
+  return inner_expect.apply(this, arguments);
+}
 
 module.exports = {
   describe: describe,
-  it: it,
-  expect: expect,
+  it:       front_it,
+  expect:   front_expect,
   class: {
     Description: Description,
     Specification: Specification,

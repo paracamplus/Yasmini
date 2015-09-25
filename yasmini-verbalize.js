@@ -28,6 +28,8 @@ The `verbose` option produces more verbosity.
 
 yasmini.class.Expectation.prototype.beginHook = function () {
   this.verbalization = [];
+};
+yasmini.class.Expectation.prototype.endHook = function () {
   var msg;
   if ( this.verbose ) {
     msg = 'Test #' + this.index + ' ';
@@ -38,9 +40,6 @@ yasmini.class.Expectation.prototype.beginHook = function () {
   if (msg) {
     this.verbalization.push(msg);
   }
-};
-yasmini.class.Expectation.prototype.endHook = function () {
-  var msg;
   if (! this.pass) {
     msg = "Échec du test #" + this.index +
       " Je n'attendais pas votre résultat: " +
@@ -53,15 +52,26 @@ yasmini.class.Specification.prototype.beginHook = function () {
   this.verbalization = [];
 };
 yasmini.class.Specification.prototype.endHook = function () {
-  var msg = "Vous avez réussi " +
-    this.expectationSuccessful +
-    " de mes " +
-    this.expectationAttempted +
-    " tests.";
   // Collect lower verbalization messages:
   this.expectations.forEach(function (expectation) {
     this.verbalization = this.verbalization.concat(expectation.verbalization);
   }, this);
+  var msg;
+  if (this.pass) {
+      msg = "Vous avez réussi " +
+        this.expectationSuccessful +
+        " de mes " +
+          this.expectationAttempted +
+        " tests.";
+    } else {
+      msg = "Vous n'avez réussi que " +
+        this.expectationSuccessful +
+        " de mes " +
+        (this.expectationIntended ?
+          this.expectationIntended :
+          this.expectationAttempted ) +
+        " tests.";
+    }
   this.verbalization.push(msg);
 };
 

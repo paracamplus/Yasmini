@@ -28,11 +28,11 @@ describe("Verbalization", function () {
         yasmini.expect(1*1, {
           code: "1*1"
         }).toBe(1);
-        yasmini.expect("2*2").eval().toBe(44);
-        yasmini.expect("2*2", {
+        yasmini.expect("2*21").eval().toBe(44);
+        yasmini.expect("2*22", {
           stopOnFailure: true
         }).eval().toBe(33);
-        yasmini.expect("2*2").eval().toBe(22);
+        yasmini.expect("2*23").eval().toBe(22);
       });
       expect(c1.expectationSuccessful).toBe(1);
       expect(c1.expectationAttempted).toBe(3);

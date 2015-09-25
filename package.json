@@ -18,12 +18,13 @@
     "url": "http://lip6.fr/Christian.Queinnec/"
   },
   "files": [
+    ".gitignore",
     ".jshintrc",
     "LICENSE",
     "Makefile",
     "package.json",
     "README.md",
-    "yasmini.js",
+    "yasmini*.js",
     "spec/*.js"
   ],
   "main": "yasmini.js",
