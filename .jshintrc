@@ -8,5 +8,6 @@
   "node": true,
   "module": true,
   "globals": [
+    "yasmini": true
   ]
 }

@@ -14,9 +14,9 @@ into account.
 
 For this personal framework (but you are free to use it), I started using
 Jasmine but I also wanted the same code to be used for my own tests and for
-grading students' programs. The amount of patches was too big and probably
-too dependent of the precise version of Jasmine so I decided to write my
-own framework. The name Yasmini stands for a mini-Jasmine.
+grading students' programs. To achieve this, the amount of patches was too
+big and probably too dependent of the precise version of Jasmine so I decided
+to write my own framework. The name Yasmini stands for a mini-Jasmine.
 
 ## Synopsis
 
@@ -50,3 +50,6 @@ some options.
 By default, there is no verbalization of the tests.
 
 ## Description
+
+
+To be continued...

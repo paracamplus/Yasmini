@@ -32,7 +32,7 @@
     "url": "https://github.com/paracamplus/Yasmini"
   },
   "scripts": {
-    "test": "jasmine"
+    "test": "make tests"
   },
   "dependencies": {
   },

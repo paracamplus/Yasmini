@@ -1,4 +1,5 @@
 "use strict";
+// jshint module: true
 /*
 Copyright (C) 2015 Christian.Queinnec@CodeGradX.org
 
@@ -20,6 +21,21 @@ See https://github.com/paracamplus/Yasmini.git
 
 // Require some node.js modules:
 var vm = require('vm');
+var path = require('path');
+var fs = require('fs');
+
+/*
+* Load utility. The utility file should be stored aside yasmini.js
+* It will be loaded in the very environment of Yasmini.
+*/
+
+function load (filename) {
+  var f = path.join(__dirname, filename);
+  var src = fs.readFileSync(f);
+  vm.runInNewContext(src, {
+    yasmini: module.exports
+  });
+}
 
 /*
 * Enrich an object with a number of sources (processed from left to right).
@@ -250,7 +266,9 @@ module.exports = {
     Description: Description,
     Specification: Specification,
     Expectation: Expectation
-  }
+  },
+  load: load
 };
+module.exports.yasmini = module.exports;
 
 // end of yasmini.js

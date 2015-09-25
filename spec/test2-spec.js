@@ -2,12 +2,12 @@
 // Usage: jasmine spec/test2-spec.js
 // jshint jasmine: true
 
-var cx = require('../yasmini.js');
+var yasmini = require('../yasmini.js');
 var vm = require('vm');
 
 describe("Yasmini library: a light Jasmine framework", function () {
   it("should offer describe", function () {
-    var desc = cx.describe("Yasmini: should offer describe", function () {
+    var desc = yasmini.describe("Yasmini: should offer describe", function () {
       return 42;
     });
     expect(desc.message).toBe("Yasmini: should offer describe");
@@ -17,7 +17,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
 
   it("should offer describe with options", function () {
     var msg = "Yasmini: should offer describe with options";
-    var desc = cx.describe(msg, function () {
+    var desc = yasmini.describe(msg, function () {
       return 42;
     }, {
       foobar: 33
@@ -30,7 +30,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
 
   it("should offer describe catching exceptions", function () {
     var msg = "Yasmini: should offer describe catching exceptions";
-    var desc = cx.describe(msg, function () {
+    var desc = yasmini.describe(msg, function () {
       throw 42;
     });
     expect(desc.message).toBe(msg);
@@ -57,8 +57,8 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer it", function () {
-    var desc = cx.describe("Yasmini: should offer it", function () {
-      var it1 = cx.it("should run it", function () {
+    var desc = yasmini.describe("Yasmini: should offer it", function () {
+      var it1 = yasmini.it("should run it", function () {
         return 33;
       });
       expect(it1.expectationAttempted).toBe(0);
@@ -70,14 +70,14 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer two it with options", function () {
-    var desc = cx.describe("Yasmini: should offer two it with options", function () {
-      var it1 = cx.it("should run it", function () {
+    var desc = yasmini.describe("Yasmini: should offer two it with options", function () {
+      var it1 = yasmini.it("should run it", function () {
         33; // no return
       }, {
         foobar: 35
       });
       expect(it1.foobar).toBe(35);
-      var it2 = cx.it("should run another it", function () {
+      var it2 = yasmini.it("should run another it", function () {
         return 34;
       });
       expect(it2).toBeTruthy();
@@ -92,14 +92,14 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer two it with exception", function () {
-    var desc = cx.describe("Yasmini: should offer two it with exception", function () {
-      var it1 = cx.it("should run it", function () {
+    var desc = yasmini.describe("Yasmini: should offer two it with exception", function () {
+      var it1 = yasmini.it("should run it", function () {
         throw 33;
       }, {
         stopOnFailure: true
       });
       expect(it1.stopOnFailure).toBe(true);
-      cx.it("should not run another it", function () {
+      yasmini.it("should not run another it", function () {
         return 34;
       });
     });
@@ -111,9 +111,9 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer expect", function () {
-    cx.describe("Yasmini: should offer expect", function () {
-      var it1 = cx.it("should run it", function () {
-        var expect1 = cx.expect(41).toBe(41);
+    yasmini.describe("Yasmini: should offer expect", function () {
+      var it1 = yasmini.it("should run it", function () {
+        var expect1 = yasmini.expect(41).toBe(41);
         expect(expect1).toBeTruthy();
       });
       expect(it1.expectations.length).toBe(1);
@@ -124,9 +124,9 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer chained expect", function () {
-    cx.describe("Yasmini: should offer chained expect", function () {
-      var it1 = cx.it("should run it", function () {
-        cx.expect(41).toBe(41).toBe(41);
+    yasmini.describe("Yasmini: should offer chained expect", function () {
+      var it1 = yasmini.it("should run it", function () {
+        yasmini.expect(41).toBe(41).toBe(41);
       });
       expect(it1.expectations.length).toBe(1);
       expect(it1.expectationAttempted).toBe(1);
@@ -136,10 +136,10 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer multiple expect", function () {
-    cx.describe("Yasmini: should offer multiple expect", function () {
-      var it1 = cx.it("should run it", function () {
-        cx.expect(41).toBe(41);
-        cx.expect(true).toBe(true);
+    yasmini.describe("Yasmini: should offer multiple expect", function () {
+      var it1 = yasmini.it("should run it", function () {
+        yasmini.expect(41).toBe(41);
+        yasmini.expect(true).toBe(true);
       });
       expect(it1.expectations.length).toBe(2);
       expect(it1.expectationAttempted).toBe(2);
@@ -150,11 +150,11 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer multiple expect not all true", function () {
-    cx.describe("Yasmini: should offer multiple expect not all true",
+    yasmini.describe("Yasmini: should offer multiple expect not all true",
     function () {
-      var it1 = cx.it("should run it", function () {
-        cx.expect(41).toBe("euh");
-        cx.expect(true).toBe(true);
+      var it1 = yasmini.it("should run it", function () {
+        yasmini.expect(41).toBe("euh");
+        yasmini.expect(true).toBe(true);
       });
       expect(it1.expectations.length).toBe(2);
       expect(it1.expectationAttempted).toBe(2);
@@ -165,11 +165,11 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer multiple expect not all true with exception", function () {
-    cx.describe("Yasmini: should offer multiple expect not all true",
+    yasmini.describe("Yasmini: should offer multiple expect not all true",
     function () {
-      var it1 = cx.it("should run it", function () {
-        cx.expect(41).toBe("euh");
-        cx.expect(true).toBe(true);
+      var it1 = yasmini.it("should run it", function () {
+        yasmini.expect(41).toBe("euh");
+        yasmini.expect(true).toBe(true);
       }, {
         stopOnFailure: true
       });
@@ -181,10 +181,10 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer expect.try", function () {
-    cx.describe("Yasmini: should offer expect.try",
+    yasmini.describe("Yasmini: should offer expect.try",
     function () {
-      var it1 = cx.it("should run it", function () {
-        var check1 = cx.expect(function () {
+      var it1 = yasmini.it("should run it", function () {
+        var check1 = yasmini.expect(function () {
           return 45;
         }).try().toBe(45);
         expect(check1.actual).toBe(45);
@@ -197,21 +197,21 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer expect.try with exception", function () {
-    cx.describe("Yasmini: should offer expect.try with exception",
+    yasmini.describe("Yasmini: should offer expect.try with exception",
     function () {
-      var it1 = cx.it("should run it", function () {
-        var check1 = cx.expect(function () {
+      var it1 = yasmini.it("should run it", function () {
+        var check1 = yasmini.expect(function () {
           throw 45;
         }).toThrow();  // implicit try()
         expect(check1.raisedException).toBe(true);
-        var check2 = cx.expect(function () {
+        var check2 = yasmini.expect(function () {
           throw 46;
         }).try().toThrow(); // explicit try()
         expect(check2.raisedException).toBe(true);
         // 47() throws an exception
-        var check3 = cx.expect(47).toThrow();
+        var check3 = yasmini.expect(47).toThrow();
         expect(check3.pass).toBe(true);
-        var check4 = cx.expect(function () {
+        var check4 = yasmini.expect(function () {
           return 47; // don't throw
         }).toThrow();
         expect(check4.pass).toBe(false);
@@ -225,11 +225,11 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer expect.eval", function () {
-    cx.describe("Yasmini: should offer expect.eval",
+    yasmini.describe("Yasmini: should offer expect.eval",
     function () {
-      var it1 = cx.it("should run it", function () {
+      var it1 = yasmini.it("should run it", function () {
         var code = "3 * 4";
-        var check1 = cx.expect(code).eval();
+        var check1 = yasmini.expect(code).eval();
         expect(check1.code).toBe(code);
         expect(check1.actual).toBe(12);
       });
@@ -250,11 +250,11 @@ describe("Yasmini library: a light Jasmine framework", function () {
   });
 
   it("should offer expect.eval with exceptions", function () {
-    cx.describe("Yasmini: should offer expect.eval with exceptions",
+    yasmini.describe("Yasmini: should offer expect.eval with exceptions",
     function () {
-      var it1 = cx.it("should run it", function () {
+      var it1 = yasmini.it("should run it", function () {
         var code = "(function () throw 67)()";
-        var check1 = cx.expect(code).eval();
+        var check1 = yasmini.expect(code).eval();
         expect(check1.code).toBe(code);
         expect(check1.actual).toBeUndefined();
         expect(check1.raisedException).toBe(true);
