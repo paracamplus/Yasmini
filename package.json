@@ -1,11 +1,14 @@
 {
   "name": "yasmini",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "engines": {
     "node": ">= 0.12.7"
   },
   "description": "light framework, inspired by Jasmine, for javascript programming exercises to be marked by the CodeGradX infrastructure",
-  "keywords": [ "unit testing", "program grading"],
+  "keywords": [
+    "unit testing",
+    "program grading"
+  ],
   "homepage": "https://github.com/paracamplus/Yasmini",
   "bugs": {
     "url": "https://github.com/paracamplus/Yasmini/issues",
@@ -35,8 +38,7 @@
   "scripts": {
     "test": "make tests"
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "devDependencies": {
     "jasmine": "^2.3.4"
   }
