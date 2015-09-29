@@ -204,6 +204,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
           throw 45;
         }).toThrow();  // implicit try()
         expect(check1.raisedException).toBe(true);
+        expect(check1.exception).toBe(45);
         var check2 = yasmini.expect(function () {
           throw 46;
         }).try().toThrow(); // explicit try()

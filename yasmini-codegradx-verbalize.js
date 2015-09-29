@@ -48,10 +48,16 @@ yasmini.class.Expectation.prototype.endHook = function () {
     verbalize('+ ', msg);
   }
   if (! this.pass) {
-    msg = "Échec du test #" + this.index +
-      " Je n'attendais pas votre résultat: " +
-      this.actual;
-    verbalize('- ', msg);
+      if ( this.raisedException ) {
+          msg = "Échec du test #" + this.index +
+              " Exception signalée: " +
+              this.exception;
+      } else {
+          msg = "Échec du test #" + this.index +
+              " Je n'attendais pas votre résultat: " +
+              this.actual;
+      }
+      verbalize('- ', msg);
   }
   printPartialResults_();
 };
@@ -132,7 +138,7 @@ var verbalize = function () {
     printPartialResults_();
 };
 
-var evalStudentCode_ = function (codefile) {
+var evalStudentCode_ = function (config, codefile) {
     verbalize("+ ", "Je vais évaluer votre code.");
     var src = fs.readFileSync(codefile);
     config.module = vm.createContext({});
@@ -147,7 +153,7 @@ var evalStudentCode_ = function (codefile) {
             //printerr(f);
             if ( ! ( typeof(f) === 'function' ||
                      f instanceof Function ) ) {
-                verbalize("- ", fname, "n'est pas une fonction");
+                verbalize("- ", fname, " n'est pas une fonction");
                 throw "Not a function " + fname;
             }
         }
@@ -179,10 +185,10 @@ var enrich = function (target) {
   return target;
 };
 
-var runTests_ = function (specfile) {
+var runTests_ = function (config, specfile) {
     var src = fs.readFileSync(specfile);
     var ctx = enrich(config.module, {
-        yasmini: yasmini,
+        yasmini:  yasmini,
         describe: yasmini.describe,
         it:       yasmini.it,
         expect:   yasmini.expect,
@@ -195,8 +201,8 @@ var runTests_ = function (specfile) {
 yasmini.markFile = function (config_, codefile, specfile) {
     config = config_;
     try {
-        evalStudentCode_(codefile);
-        runTests_(specfile);
+        evalStudentCode_(config_, codefile);
+        runTests_(config_, specfile);
     } catch (exc) {
         var msg = "Exception: " + exc;
         verbalize("-- ", msg);
