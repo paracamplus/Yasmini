@@ -1,0 +1,208 @@
+// An example of French verbalization for Yasmini used by CodeGradX
+
+/*
+Copyright (C) 2015 Christian.Queinnec@CodeGradX.org
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted, provided that the above
+copyright notice and this permission notice appear in all copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+See https://github.com/paracamplus/Yasmini.git
+
+This module is loaded with yasmini.load("yasmini-codegradx-verbalize.js");
+therefore the yasmini global variable is defined. This module
+defines the hooks for Expectation, Specification and Description
+in order to verbalize what happens during the tests.
+
+*/
+
+var fs = yasmini.imports.fs;
+var path = yasmini.imports.path;
+var vm = yasmini.imports.vm;
+var config = yasmini.config;
+
+yasmini.class.Expectation.prototype.beginHook = function () {
+  // exitCode is initially undefined. We initialize it with 0 as soon
+  // as at least one expectation is to be processed:
+  if ( ! config.exitCode ) {
+      config.exitCode = 0;
+  }
+};
+yasmini.class.Expectation.prototype.endHook = function () {
+  var msg;
+  if ( this.verbose ) {
+    msg = 'Test #' + this.index + ' ';
+  }
+  if ( this.code ) {
+    msg = (msg || '') + "Je vais évaluer " + this.code;
+  }
+  if (msg) {
+    verbalize('+ ', msg);
+  }
+  if (! this.pass) {
+    msg = "Échec du test #" + this.index +
+      " Je n'attendais pas votre résultat: " +
+      this.actual;
+    verbalize('- ', msg);
+  }
+  printPartialResults_();
+};
+
+yasmini.class.Specification.prototype.beginHook = function () {
+  var msg = this.message;
+  verbalize('+ ', msg);
+};
+yasmini.class.Specification.prototype.endHook = function () {
+  var msg;
+  if (this.pass) {
+      // Here expectationAttempted = expectationIntended
+      msg = "+ Vous avez réussi " +
+        this.expectationSuccessful +
+        " de mes " +
+          this.expectationAttempted +
+        " tests.";
+    } else {
+      msg = "- Vous n'avez réussi que " +
+        this.expectationSuccessful +
+        " de mes " +
+        (this.expectationIntended ?
+          this.expectationIntended :
+          this.expectationAttempted ) +
+        " tests.";
+    }
+  verbalize(msg);
+  config.attemptedExpectationsCount += 
+    this.expectationAttempted;
+  config.succeededExpectationsCount +=
+    this.expectationSuccessful;
+  printPartialResults_();
+};
+
+yasmini.class.Description.prototype.beginHook = function () {
+  config.descriptions.push(this);
+  var msg = "+ Je vais tester la fonction " +
+     this.message;
+  verbalize(msg);
+};
+yasmini.class.Description.prototype.endHook = function () {
+  printPartialResults_();
+};
+
+var printPartialResults_ = function () {
+    var msg = "" +
+        "ATTEMPTEDEXPECTATIONSCOUNT=" + 
+        config.attemptedExpectationsCount +
+        "\nSUCCEEDEDEXPECTATIONSCOUNT=" + 
+        config.succeededExpectationsCount +
+        "\nTOTALEXPECTATIONSCOUNT=" + 
+        config.totalExpectationsCount;
+    config.journal.forEach(function (s) {
+        msg += "\n# " + s;
+    });
+    msg += "\n";
+    fs.writeFileSync(config.resultFile, msg);
+};
+
+/**
+ * verbalize some facts.
+ * @param Configuration config
+ * @param Any...        message fragments
+ */
+var verbalize = function () {
+    var result = '';
+    var verbalize_ = function (o) {
+        if ( typeof(o) === 'string' || o instanceof String ) {
+            return o;
+        } else {
+            return o.toString();
+        }
+    };
+    for (var i=0 ; i<arguments.length ; i++) {
+        result += verbalize_(arguments[i]);
+    }
+    config.journal.push(result);
+    printPartialResults_();
+};
+
+var evalStudentCode_ = function (codefile) {
+    verbalize("+ ", "Je vais évaluer votre code.");
+    var src = fs.readFileSync(codefile);
+    config.module = vm.createContext({});
+    // Evaluate that file:
+    try {
+        vm.runInContext(src, config.module, { filename: codefile });
+        verbalize("+ ", "Votre code s'évalue correctement.");
+        config.isFileLoaded = true;
+
+        for (var fname in config.functions) {
+            var f = config.module[fname];
+            //printerr(f);
+            if ( ! ( typeof(f) === 'function' ||
+                     f instanceof Function ) ) {
+                verbalize("- ", fname, "n'est pas une fonction");
+                throw "Not a function " + fname;
+            }
+        }
+    } catch (exc) {
+        // Bad syntax or incorrect compilation throw an Error
+        var msg = "Je n'ai pas réussi à évaluer votre code: " +
+            exc.toString();
+        msg = msg.replace(/\n/gm, "\n#");
+        verbalize("-- ", msg);
+        throw msg;
+    } finally {
+        printPartialResults_();
+    }
+};
+
+/*
+* Enrich an object with a number of sources (processed from left to right).
+* Usage   target = enrich(target, source1, source2, ...);
+*/
+var enrich = function (target) {
+  for ( var i=1 ; i<arguments.length ; i++ ) {
+    var source = arguments[i];
+    for (var key in source) {
+      if (source.hasOwnProperty(key)) {
+        target[key] = source[key];
+      }
+    }
+  }
+  return target;
+};
+
+var runTests_ = function (specfile) {
+    var src = fs.readFileSync(specfile);
+    var ctx = enrich(config.module, {
+        yasmini: yasmini,
+        describe: yasmini.describe,
+        it:       yasmini.it,
+        expect:   yasmini.expect,
+        verbalize: verbalize
+    });
+    verbalize("+ ", "je vais tourner votre code avec mes tests");
+    vm.runInNewContext(src, ctx);
+};
+
+yasmini.markFile = function (config_, codefile, specfile) {
+    config = config_;
+    try {
+        evalStudentCode_(codefile);
+        runTests_(specfile);
+    } catch (exc) {
+        var msg = "Exception: " + exc;
+        verbalize("-- ", msg);
+    } finally {
+        printPartialResults_();
+    }
+};
+
+// end of yasmini-codegradx-verbalize.js

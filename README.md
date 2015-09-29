@@ -235,3 +235,8 @@ Adjunctions files must be stored aside the `yasmini.js` file and are loaded
 with the `yasmini.load` function (which provides the `yasmini` global variable).
 
 Feel free to write your own adjunctions and share them!
+
+# Example
+
+The `spec/ytests.js` is a test file written for Yasmini. It cannot
+be processed by Jasmine.

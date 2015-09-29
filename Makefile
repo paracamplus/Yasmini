@@ -19,6 +19,6 @@ install :
 	    ${REMOTE}:/var/www/www.paracamplus.com/Resources/Javascript/
 
 update :
-	npm version patch
+	npm version patch && npm publish
 
 # end of Makefile

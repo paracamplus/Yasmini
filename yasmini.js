@@ -90,7 +90,8 @@ function describe (msg, f, options) {
   } finally {
     inner_it = wrong_it;
     if ( description.specificationIntended &&
-         description.specificationAttempted != description.specificationIntended ) {
+         description.specificationAttempted != 
+           description.specificationIntended ) {
        description.pass = false;
    }
     description.endHook();
@@ -228,18 +229,28 @@ Expectation.prototype.toMatch = function (regexp, options) {
   }
   return this;
 };
-Expectation.prototype.try = function () {
-  try {
-    this.thunk = this.actual;
-    this.actual = undefined;
-    this.actual = this.thunk.call(this);
-  } catch (exc) {
-    this.raisedException = true;
-    this.exception = exc;
+Expectation.prototype.toMatch = function (regexp, options) {
+  enrich(this, options || {});
+  regexp = new RegExp(regexp); // Check regexp
+  if (this.raisedException || ! regexp.test(this.actual.toString())) {
     this.pass = false;
-    if (this.stopOnFailure) {
+    if ( this.stopOnFailure ) {
+      var exc = new Error(this);
       throw exc;
     }
+  }
+  return this;
+};
+Expectation.prototype.toBeFunction = function (options) {
+  enrich(this, options || {});
+    if ( typeof(this.actual) === 'function' ||
+         this.actual instanceof Function ) {
+        this.pass = true;
+    } else {
+        this.pass = false;
+    }
+    if (this.stopOnFailure) {
+        throw "Not a function " + this.actual;
   }
   return this;
 };
@@ -312,7 +323,12 @@ module.exports = {
     Specification: Specification,
     Expectation: Expectation
   },
-  load: load
+  load: load,
+  imports: {
+      path: path,
+      fs:   fs,
+      vm:   vm
+  }
 };
 module.exports.yasmini = module.exports;
 
