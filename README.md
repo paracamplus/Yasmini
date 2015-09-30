@@ -221,6 +221,10 @@ whether the regexp acccepts it.
 
 The `toThrow` matcher considers `actual` to be a thunk (a function without
 argument) to invoke; it then checks that the function throws something.
+This matcher invokes the `invoke` matcher if not yet done.
+
+The `invoke` matcher considers `actual` to be a thunk (a function without
+argument) to invoke; `actual` is reset to the obtained value.
 
 The `eval` matcher considers `actual` to be a string which must be `eval`-ed.
 The resulting value will replace `actual` so you may chain this matcher

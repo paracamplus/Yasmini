@@ -180,13 +180,13 @@ describe("Yasmini library: a light Jasmine framework", function () {
     });
   });
 
-  it("should offer expect.try", function () {
-    yasmini.describe("Yasmini: should offer expect.try",
+  it("should offer expect.invoke", function () {
+    yasmini.describe("Yasmini: should offer expect.invoke",
     function () {
       var it1 = yasmini.it("should run it", function () {
         var check1 = yasmini.expect(function () {
           return 45;
-        }).try().toBe(45);
+        }).invoke().toBe(45);
         expect(check1.actual).toBe(45);
       });
       expect(it1.expectations.length).toBe(1);
@@ -196,8 +196,8 @@ describe("Yasmini library: a light Jasmine framework", function () {
     });
   });
 
-  it("should offer expect.try with exception", function () {
-    yasmini.describe("Yasmini: should offer expect.try with exception",
+  it("should offer expect.invoke with exception", function () {
+    yasmini.describe("Yasmini: should offer expect.invoke with exception",
     function () {
       var it1 = yasmini.it("should run it", function () {
         var check1 = yasmini.expect(function () {
@@ -207,7 +207,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
         expect(check1.exception).toBe(45);
         var check2 = yasmini.expect(function () {
           throw 46;
-        }).try().toThrow(); // explicit try()
+        }).invoke().toThrow(); // explicit try()
         expect(check2.raisedException).toBe(true);
         // 47() throws an exception
         var check3 = yasmini.expect(47).toThrow();
@@ -230,7 +230,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
     function () {
       var it1 = yasmini.it("should run it", function () {
         var code = "3 * 4";
-        var check1 = yasmini.expect(code).eval();
+        var check1 = yasmini.expect(code).eval().toBe(12);
         expect(check1.code).toBe(code);
         expect(check1.actual).toBe(12);
       });
@@ -254,7 +254,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
     yasmini.describe("Yasmini: should offer expect.eval with exceptions",
     function () {
       var it1 = yasmini.it("should run it", function () {
-        var code = "(function () throw 67)()";
+        var code = "(function () { throw 67; })()";
         var check1 = yasmini.expect(code).eval();
         expect(check1.code).toBe(code);
         expect(check1.actual).toBeUndefined();

@@ -23,40 +23,48 @@ defines the hooks for Expectation, Specification and Description
 in order to verbalize what happens during the tests. Verbalization
 bubbles up and finishes in Description.verbalization.
 
-The `verbose` option produces more verbosity.
 */
 
 yasmini.class.Expectation.prototype.beginHook = function () {
-  this.verbalization = [];
+  var msg = "run beginHook on test #" + this.index;
+  this.specification.description.verbalization.push(msg);
+  this.alreadyShownTest = false;
+};
+yasmini.class.Expectation.prototype.matchHook = function () {
+  var msg = "run matchHook on test #" + this.index;
+  this.specification.description.verbalization.push(msg);
+  msg = '';
+  if ( ! this.alreadyShownTest ) {
+      this.alreadyShownTest = true;
+      if ( this.verbose ) {
+          msg = 'Test #' + this.index + ' ';
+      }
+      if ( this.code ) {
+          msg = (msg || '') + "Je vais évaluer " + this.code;
+      }
+      if (msg) {
+          this.specification.description.verbalization.push(msg);
+      }
+  }
 };
 yasmini.class.Expectation.prototype.endHook = function () {
-  var msg;
-  if ( this.verbose ) {
-    msg = 'Test #' + this.index + ' ';
-  }
-  if ( this.code ) {
-    msg = (msg || '') + "Je vais évaluer " + this.code;
-  }
-  if (msg) {
-    this.verbalization.push(msg);
-  }
+  var msg = "run endHook on test #" + this.index;
+  this.specification.description.verbalization.push(msg);
   if (! this.pass) {
     msg = "Échec du test #" + this.index +
       " Je n'attendais pas votre résultat: " +
       this.actual;
-    this.verbalization.push(msg);
+    this.specification.description.verbalization.push(msg);
   }
 };
 
 yasmini.class.Specification.prototype.beginHook = function () {
-  this.verbalization = [];
+  var msg = "run beginHook on specification #" + this.message;
+  this.description.verbalization.push(msg);
 };
 yasmini.class.Specification.prototype.endHook = function () {
-  // Collect lower verbalization messages:
-  this.expectations.forEach(function (expectation) {
-    this.verbalization = this.verbalization.concat(expectation.verbalization);
-  }, this);
-  var msg;
+  var msg = "run endHook on specification #" + this.message;
+  this.description.verbalization.push(msg);
   if (this.pass) {
       msg = "Vous avez réussi " +
         this.expectationSuccessful +
@@ -72,17 +80,16 @@ yasmini.class.Specification.prototype.endHook = function () {
           this.expectationAttempted ) +
         " tests.";
     }
-  this.verbalization.push(msg);
+  this.description.verbalization.push(msg);
 };
 
 yasmini.class.Description.prototype.beginHook = function () {
-  this.verbalization = [];
+  var msg = "run beginHook on description #" + this.message;
+  this.verbalization = [msg];
 };
 yasmini.class.Description.prototype.endHook = function () {
-  // Collect lower verbalization messages:
-  this.specifications.forEach(function (spec) {
-    this.verbalization = this.verbalization.concat(spec.verbalization);
-  }, this);
+  var msg = "run endHook on description #" + this.message;
+  this.verbalization.push(msg);
 };
 
 // end of yasmini-verbalize.js

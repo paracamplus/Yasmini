@@ -57,27 +57,25 @@ yasmini.class.Expectation.prototype.matchHook = function () {
         }
         this.alreadyShownTest = true;
     }
-    // Update the current specification:
-    this.specification.expectationSuccessful = 0;
-    this.specification.expectations.forEach(function (expectation) {
-        if ( expectation.pass ) {
-            this.specification.expectationSuccessful++;
-        }
-    }, this);
+    this.specification.update_();
     printPartialResults_();
 };
 yasmini.class.Expectation.prototype.endHook = function () {
-  if (! this.pass) {
-      if ( this.raisedException ) {
-          msg = "Échec du test #" + this.index +
-              " Exception signalée: " +
-              this.exception;
-      } else {
-          msg = "Échec du test #" + this.index +
-              " Je n'attendais pas votre résultat: " +
-              this.actual;
+  if ( ! this.runEndHook ) {
+      verbalize('+ ', "running endHook on test #", this.index);
+      if (! this.pass) {
+          if ( this.raisedException ) {
+              msg = "Échec du test #" + this.index +
+                  " Exception signalée: " +
+                  this.exception;
+          } else {
+              msg = "Échec du test #" + this.index +
+                  " Je n'attendais pas votre résultat: " +
+                  this.actual;
+          }
+          verbalize('- ', msg);
       }
-      verbalize('- ', msg);
+      this.runEndHook = true;
   }
   printPartialResults_();
 };

@@ -67,7 +67,7 @@ function Description (msg, f, options) {
   this.exception = null;
   this.specificationAttempted = 0;
   this.specificationSuccessful = 0;
-  this.pass = true;
+  this.pass = false;
 }
 Description.prototype.run = function () {
   this.result = this.behavior.call(this);
@@ -77,6 +77,26 @@ Description.prototype.beginHook = function () {
 };
 Description.prototype.endHook = function () {
   return this;
+};
+Description.prototype.update_ = function () {
+    this.pass = true;
+    // Recompute specificationSuccessful:
+    this.specificationSuccessful = 0;
+    this.specifications.forEach(function (spec) {
+        // One failed specification fails the entire description
+        if ( spec.pass ) {
+            this.specificationSuccessful++;
+        } else {
+            this.pass = false;
+        }
+    }, this);
+    // check intended versus attempted:
+    if ( this.specificationIntended &&
+         this.specificationAttempted != 
+           this.specificationIntended ) {
+        this.pass = false;
+    }
+    return this;
 };
 
 function describe (msg, f, options) {
@@ -90,11 +110,7 @@ function describe (msg, f, options) {
     description.raisedException = true;
   } finally {
     inner_it = wrong_it;
-    if ( description.specificationIntended &&
-         description.specificationAttempted != 
-           description.specificationIntended ) {
-       description.pass = false;
-   }
+    description.update_();
     description.endHook();
   }
   return description;
@@ -116,7 +132,7 @@ function Specification (description, msg, f, options) {
   this.exception = null;
   this.expectationAttempted = 0;
   this.expectationSuccessful = 0;
-  this.pass = true;
+  this.pass = false;
 }
 Specification.prototype.run = function () {
   this.result = this.behavior.call(this);
@@ -127,6 +143,28 @@ Specification.prototype.beginHook = function () {
 Specification.prototype.endHook = function () {
   return this;
 };
+Specification.prototype.update_ = function () {
+    this.pass = true;
+    // recompute expectationSuccessful:
+    this.expectationSuccessful = 0;
+    this.expectations.forEach(function (expectation) {
+        if ( expectation.pass ) {
+            this.expectationSuccessful++;
+        } else {
+            // One failed expectation fails the entire specification!
+            this.pass = false;
+        }
+      }, this);
+    // Check intended versus attempted:
+    if ( this.expectationIntended &&
+         this.expectationIntended != this.expectationAttempted ) {
+        this.pass = false;
+    }
+    // propagate to description:
+    //console.log(this);//DEBUG
+    this.description.update_();
+    return this;
+}
 
 function mk_it (description) {
   var newit = function (msg, f, options) {
@@ -136,7 +174,6 @@ function mk_it (description) {
       description.specificationAttempted++;
       inner_expect = mk_expect(spec);
       spec.run();
-      description.specificationSuccessful++;
     } catch (exc) {
       spec.exception = exc;
       spec.raisedException = true;
@@ -146,25 +183,19 @@ function mk_it (description) {
       }
     } finally {
       inner_expect = wrong_expect;
-      spec.expectationSuccessful = 0;
       spec.expectations.forEach(function (expectation) {
-        if ( expectation.pass ) {
-          spec.expectationSuccessful++;
-        } else {
-          // One failed expectation fails the entire specification!
-          spec.pass = false;
-        }
-        expectation.endHook();
+          try {
+              expectation.endHook();
+          } catch (exc) {
+              expectation.endHookException = exc;
+          }
       });
-      if ( spec.expectationIntended &&
-           spec.expectationIntended != spec.expectationAttempted ) {
-         spec.pass = false;
+      spec.update_();
+      try {
+          spec.endHook();
+      } catch (exc) {
+          spec.endHookException = exc;
       }
-      // One failed specification fails the entire description
-      if ( ! spec.pass ) {
-        description.pass = false;
-      }
-      spec.endHook();
     }
     return spec;
   };
@@ -183,8 +214,9 @@ function Expectation (spec, options) {
   // Internal fields:
   this.raisedException = false;
   this.exception = null;
-  this.pass = true;
+  this.pass = false;
   this.index = ++this.specification.expectationAttempted;
+  this.runEndHook = false;
 }
 Expectation.prototype.run = function () {
   this.beginHook();
@@ -199,11 +231,37 @@ Expectation.prototype.matchHook = function () {
   return this;
 };
 Expectation.prototype.endHook = function () {
+  // endHook run only once per expectation:
+  if ( ! this.runEndHook ) {
+      this.runEndHook = true;
+  }
   return this;
 };
+Expectation.prototype.update_ = function () {
+  // Propagate to enclosing specification:
+  this.specification.update_();
+  return this;
+};
+
+function mk_expect (spec) {
+  var new_expect = function (actual, options) {
+    var expectation = new Expectation(spec, {
+        actual: actual
+      });
+    enrich(expectation, options || {});
+    expectation.run();
+    return expectation;
+  };
+  return new_expect;
+}
+
+// Matchers
+// FUTURE: should not be used after endHook()
+
 Expectation.prototype.toBe = function (expected, options) {
     try {
         enrich(this, options || {});
+        this.pass = true;
         if (this.raisedException || this.actual !== expected) {
             this.pass = false;
             if ( this.stopOnFailure ) {
@@ -220,6 +278,7 @@ Expectation.prototype.toBe = function (expected, options) {
 Expectation.prototype.toBeTruthy = function (options) {
     try {
         enrich(this, options || {});
+        this.pass = true;
         if (this.raisedException || !this.actual) {
             this.pass = false;
             if ( this.stopOnFailure ) {
@@ -235,6 +294,7 @@ Expectation.prototype.toBeTruthy = function (options) {
 Expectation.prototype.toMatch = function (regexp, options) {
     try {
         enrich(this, options || {});
+        this.pass = true;
         regexp = new RegExp(regexp); // Check regexp
         if (this.raisedException || ! regexp.test(this.actual.toString())) {
             this.pass = false;
@@ -265,7 +325,7 @@ Expectation.prototype.toBeFunction = function (options) {
     }
     return this;
 };
-Expectation.prototype.try = function () {
+Expectation.prototype.invoke = function () {
   try {
       this.thunk = this.actual;
       this.actual = undefined;
@@ -280,8 +340,8 @@ Expectation.prototype.try = function () {
 };
 Expectation.prototype.toThrow = function () {
     if ( ! this.thunk ) {
-        // Force a try() if not yet done!
-        this.try();
+        // Force invoke() if not yet done!
+        this.invoke();
     }
     try {
         if (this.raisedException) {
@@ -315,17 +375,10 @@ Expectation.prototype.eval = function () {
   }
   return this;
 };
-
-function mk_expect (spec) {
-  var new_expect = function (actual, options) {
-    var expectation = new Expectation(spec, {
-        actual: actual
-      });
-    enrich(expectation, options || {});
-    expectation.run();
-    return expectation;
-  };
-  return new_expect;
+// Specific matcher telling that no more matchers will be applied on
+// the current expectation.
+Expectation.prototype.done = function () {
+    this.endHook();
 }
 
 function wrong_it (msg, f) {

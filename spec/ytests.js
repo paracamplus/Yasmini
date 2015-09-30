@@ -20,16 +20,19 @@ var d1 = describe("some program", function () {
       // options
       stopOnFailure: false,
       code: "throw 33"
-    }).toThrow();
-    e1.verbalization.push('Reached that point');
+    }).invoke().toThrow();
+    //console.log(e3); // DEBUG
+    this.description.verbalization.push('Reached that point');
   }, { // options for specification
         stopOnFailure: true,
         expectationIntended: 3
   });
+  console.log(it1);//DEBUG
   var it2 = it("should check previous specification", function () {
-    expect(e1.verbalization.length).toBe(2);
-    expect(e1.verbalization[0]).toMatch(/Reached that point/);
-    expect(e1.verbalization[1]).toMatch(/Je vais/);
+    var verbs = e1.specification.description.verbalization;
+    expect(verbs.length).toBe(19);
+    expect(verbs[10]).toMatch(/Je vais/);
+    expect(verbs[12]).toMatch(/Reached that point/);
     expect(e3.raisedException).toBe(true);
     //console.log(it1); // DEBUG
     expect(it1.raisedException).toBe(false);
@@ -41,7 +44,7 @@ var d1 = describe("some program", function () {
     expect(it2.pass).toBeTruthy();
     expect(it2.pass).toBe(true);
     expect(it2.expectationAttempted).toBe(it2.expectationSuccessful).toBe(6);
-    expect(it1.description.pass).toBeTruthy();
+    expect(it1.pass).toBeTruthy();
     expect(it2.raisedException).toBe(false);
   }, {
     verbose: false,
@@ -51,6 +54,8 @@ var d1 = describe("some program", function () {
       verbose: true,
       specificationIntended: 3
 });
+
+console.log(d1);
 console.log(d1.verbalization);
 if ( ! d1.pass ) {
   process.exitCode = 1;
