@@ -23,6 +23,7 @@ See https://github.com/paracamplus/Yasmini.git
 var vm = require('vm');
 var path = require('path');
 var fs = require('fs');
+var util = require('util');
 
 /*
 * Load utility. The utility file should be stored aside yasmini.js
@@ -145,6 +146,7 @@ function mk_it (description) {
       }
     } finally {
       inner_expect = wrong_expect;
+      spec.expectationSuccessful = 0;
       spec.expectations.forEach(function (expectation) {
         if ( expectation.pass ) {
           spec.expectationSuccessful++;
@@ -186,61 +188,82 @@ function Expectation (spec, options) {
 }
 Expectation.prototype.run = function () {
   this.beginHook();
-  // this.endHook() will be run just before Specification.endHook()
+  // this.endHook() will be run just before Specification.endHook() or
+  // just before the next beginHook().
   return this;
 };
 Expectation.prototype.beginHook = function () {
+  return this;
+};
+Expectation.prototype.matchHook = function () {
   return this;
 };
 Expectation.prototype.endHook = function () {
   return this;
 };
 Expectation.prototype.toBe = function (expected, options) {
-  enrich(this, options || {});
-  if (this.raisedException || this.actual !== expected) {
-    this.pass = false;
-    if ( this.stopOnFailure ) {
-      var exc = new Error(this);
-      throw exc;
+    try {
+        enrich(this, options || {});
+        if (this.raisedException || this.actual !== expected) {
+            this.pass = false;
+            if ( this.stopOnFailure ) {
+                var exc = this.raisedException ? 
+                    this.exception : new Error(this);
+                throw exc;
+            }
+        }
+    } finally {
+        this.matchHook();
     }
-  }
-  return this;
+    return this;
 };
 Expectation.prototype.toBeTruthy = function (options) {
-  enrich(this, options || {});
-  if (this.raisedException || !this.actual) {
-    this.pass = false;
-    if ( this.stopOnFailure ) {
-      var exc = new Error(this);
-      throw exc;
+    try {
+        enrich(this, options || {});
+        if (this.raisedException || !this.actual) {
+            this.pass = false;
+            if ( this.stopOnFailure ) {
+                var exc = new Error(this);
+                throw exc;
+            }
+        }
+    } finally {
+        this.matchHook();
     }
-  }
-  return this;
+    return this;
 };
 Expectation.prototype.toMatch = function (regexp, options) {
-  enrich(this, options || {});
-  regexp = new RegExp(regexp); // Check regexp
-  if (this.raisedException || ! regexp.test(this.actual.toString())) {
-    this.pass = false;
-    if ( this.stopOnFailure ) {
-      var exc = new Error(this);
-      throw exc;
+    try {
+        enrich(this, options || {});
+        regexp = new RegExp(regexp); // Check regexp
+        if (this.raisedException || ! regexp.test(this.actual.toString())) {
+            this.pass = false;
+            if ( this.stopOnFailure ) {
+                var exc = new Error(this);
+                throw exc;
+            }
+        }
+    } finally {
+        this.matchHook();
     }
-  }
-  return this;
+    return this;
 };
 Expectation.prototype.toBeFunction = function (options) {
-  enrich(this, options || {});
-    if ( typeof(this.actual) === 'function' ||
-         this.actual instanceof Function ) {
-        this.pass = true;
-    } else {
-        this.pass = false;
+    try {
+        enrich(this, options || {});
+        if ( typeof(this.actual) === 'function' ||
+             this.actual instanceof Function ) {
+            this.pass = true;
+        } else {
+            this.pass = false;
+        }
+        if (this.stopOnFailure) {
+            throw "Not a function " + this.actual;
+        }
+    } finally {
+        this.matchHook();
     }
-    if (this.stopOnFailure) {
-        throw "Not a function " + this.actual;
-  }
-  return this;
+    return this;
 };
 Expectation.prototype.try = function () {
   try {
@@ -250,24 +273,30 @@ Expectation.prototype.try = function () {
   } catch (exc) {
       this.exception = exc;
       this.raisedException = true;
+  } finally {
+      this.matchHook();
   }
   return this;
 };
 Expectation.prototype.toThrow = function () {
-  if ( ! this.thunk ) {
-    // Force a try() if not yet done!
-    this.try();
-  }
-  if (this.raisedException) {
-    this.pass = true;
-  } else {
-    this.pass = false;
-    if (this.stopOnFailure) {
-      var exc = new Error(this);
-      throw exc;
+    if ( ! this.thunk ) {
+        // Force a try() if not yet done!
+        this.try();
     }
-  }
-  return this;
+    try {
+        if (this.raisedException) {
+            this.pass = true;
+        } else {
+            this.pass = false;
+            if (this.stopOnFailure) {
+                var exc = new Error(this);
+                throw exc;
+            }
+        }
+    } finally {
+        this.matchHook();
+    }
+    return this;
 };
 Expectation.prototype.eval = function () {
   try {
@@ -281,6 +310,8 @@ Expectation.prototype.eval = function () {
     if (this.stopOnFailure) {
       throw exc;
     }
+  } finally {
+      this.matchHook();
   }
   return this;
 };
@@ -326,7 +357,8 @@ module.exports = {
   imports: {
       path: path,
       fs:   fs,
-      vm:   vm
+      vm:   vm,
+      util: util
   }
 };
 module.exports.yasmini = module.exports;

@@ -1,5 +1,6 @@
-work : update pack install 
+work : tests update pack install publish
 clean :: cleanMakefile
+	-rm npm-debug.log
 
 tests : test.with.jasmine test.with.yasmini
 	@echo;echo "    ALL TESTS SUCCESSFUL ";echo
@@ -9,7 +10,7 @@ test.with.jasmine :
 test.with.yasmini :
 	node spec/y*.js
 
-pack :
+pack : clean
 	-rm -f ../yasmini.tgz
 	tar czf ../yasmini.tgz .
 
@@ -19,6 +20,8 @@ install :
 	    ${REMOTE}:/var/www/www.paracamplus.com/Resources/Javascript/
 
 update :
-	npm version patch && npm publish
+	npm version patch
+publish :
+	npm publish
 
 # end of Makefile

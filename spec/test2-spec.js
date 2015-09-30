@@ -39,7 +39,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
     expect(desc.exception).toBe(42);
   });
 
-  it("javascript verification", function () {
+  it("javascript verification that finally resumes a throw", function () {
     var a = 1;
     try {
       try {

@@ -35,18 +35,38 @@ yasmini.class.Expectation.prototype.beginHook = function () {
   if ( ! config.exitCode ) {
       config.exitCode = 0;
   }
+  this.alreadyShownTest = false;
+  // Run the endHook of the previous expectation if any:
+  var n = this.specification.expectations.length;
+  if ( n > 1 ) {
+      var previousExpectation = this.specification.expectations[n-2];
+      previousExpectation.endHook();
+  }
+};
+yasmini.class.Expectation.prototype.matchHook = function () {
+    var msg;
+    if ( ! this.alreadyShownTest ) {
+        if ( this.verbose ) {
+            msg = 'Test #' + this.index + ' ';
+        }
+        if ( this.code ) {
+            msg = (msg || '') + "J'évalue " + this.code;
+        }
+        if (msg) {
+            verbalize('+ ', msg);
+        }
+        this.alreadyShownTest = true;
+    }
+    // Update the current specification:
+    this.specification.expectationSuccessful = 0;
+    this.specification.expectations.forEach(function (expectation) {
+        if ( expectation.pass ) {
+            this.specification.expectationSuccessful++;
+        }
+    }, this);
+    printPartialResults_();
 };
 yasmini.class.Expectation.prototype.endHook = function () {
-  var msg;
-  if ( this.verbose ) {
-    msg = 'Test #' + this.index + ' ';
-  }
-  if ( this.code ) {
-    msg = (msg || '') + "Je vais évaluer " + this.code;
-  }
-  if (msg) {
-    verbalize('+ ', msg);
-  }
   if (! this.pass) {
       if ( this.raisedException ) {
           msg = "Échec du test #" + this.index +
@@ -124,15 +144,8 @@ var printPartialResults_ = function () {
  */
 var verbalize = function () {
     var result = '';
-    var verbalize_ = function (o) {
-        if ( typeof(o) === 'string' || o instanceof String ) {
-            return o;
-        } else {
-            return o.toString();
-        }
-    };
     for (var i=0 ; i<arguments.length ; i++) {
-        result += verbalize_(arguments[i]);
+        result += yasmini.imports.util.inspect(arguments[i]);
     }
     config.journal.push(result);
     printPartialResults_();
@@ -187,15 +200,17 @@ var enrich = function (target) {
 
 var runTests_ = function (config, specfile) {
     var src = fs.readFileSync(specfile);
-    var ctx = enrich(config.module, {
+    // NOTA: this pollutes the current environment with student's functions:
+    var current = vm.runInThisContext("this");
+    enrich(current, config.module, {
         yasmini:  yasmini,
         describe: yasmini.describe,
         it:       yasmini.it,
         expect:   yasmini.expect,
         verbalize: verbalize
     });
-    verbalize("+ ", "je vais tourner votre code avec mes tests");
-    vm.runInNewContext(src, ctx);
+    verbalize("+ ", "Je vais tourner votre code avec mes tests");
+    vm.runInNewContext(src, current);
 };
 
 yasmini.markFile = function (config_, codefile, specfile) {

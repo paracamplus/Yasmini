@@ -181,6 +181,7 @@ expect(something, {
 
 First the arguments are computed and given to the `expect` function. An
 `Expectation` instance is created and the `beginHook` method is run.
+Every matcher invocation invokes the `matchHook` hook.
 Note that the `endHook` is run by the enclosing specification. Among
 the possible options are the usual ones `verbose` and `stopOnFailure`.
 
@@ -203,6 +204,10 @@ The expectation per se does not check anything, its methods (called Matchers
 in Jasmine parlance) will do the work. Depending on the matcher, the
 first argument (say the `actual`) may be a string, a function or anything.
 
+When the `matchHook` method is run, the Expectation instance holds a
+number of fields as listed above though some further matchers may
+alter the content of these fields.
+
 ### Matchers
 
 The simplest matcher is `toBeTruthy` which checks that `actual` is true
@@ -221,9 +226,10 @@ The `eval` matcher considers `actual` to be a string which must be `eval`-ed.
 The resulting value will replace `actual` so you may chain this matcher
 with other matchers.
 
-All matchers return the input `Expectation` so they may be chained. Note
-however that expectations are counted but not matchers so
-`expect(...).toBe(true).toBeTruthy()` only counts for one expectation.
+All matchers run the `matchHook` hook and return the input
+`Expectation` so they may be chained. Note however that expectations
+are counted but not matchers so `expect(...).toBe(true).toBeTruthy()`
+only counts for one expectation.
 
 # Adjunctions
 
