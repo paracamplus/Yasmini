@@ -1,5 +1,3 @@
-"use strict";
-// jshint module: true
 /*
 Copyright (C) 2015 Christian.Queinnec@CodeGradX.org
 
@@ -98,7 +96,7 @@ Description.prototype.update_ = function () {
     }, this);
     // check intended versus attempted:
     if ( this.specificationIntended &&
-         this.specificationAttempted != 
+         this.specificationAttempted !=
            this.specificationIntended ) {
         this.pass = false;
     }
@@ -150,26 +148,26 @@ Specification.prototype.endHook = function () {
   return this;
 };
 Specification.prototype.update_ = function () {
-    this.pass = true;
-    // recompute expectationSuccessful:
-    this.expectationSuccessful = 0;
-    this.expectations.forEach(function (expectation) {
-        if ( expectation.pass ) {
-            this.expectationSuccessful++;
-        } else {
-            // One failed expectation fails the entire specification!
-            this.pass = false;
-        }
-      }, this);
-    // Check intended versus attempted:
-    if ( this.expectationIntended &&
-         this.expectationIntended != this.expectationAttempted ) {
-        this.pass = false;
+  this.pass = true;
+  // recompute expectationSuccessful:
+  this.expectationSuccessful = 0;
+  this.expectations.forEach(function (expectation) {
+    if ( expectation.pass ) {
+      this.expectationSuccessful++;
+    } else {
+      // One failed expectation fails the entire specification!
+      this.pass = false;
+    }
+  }, this);
+  // Check intended versus attempted:
+  if ( this.expectationIntended &&
+    this.expectationIntended != this.expectationAttempted ) {
+      this.pass = false;
     }
     // propagate to description:
     this.description.update_();
     return this;
-}
+  };
 
 function mk_it (description) {
   var newit = function (msg, f, options) {
@@ -264,104 +262,104 @@ function mk_expect (spec) {
 // FUTURE: should not be used after endHook()
 
 Expectation.prototype.toBe = function (expected, options) {
-    try {
-        enrich(this, options || {});
-        this.pass = true;
-        if (this.raisedException || this.actual !== expected) {
-            this.pass = false;
-            if ( this.stopOnFailure ) {
-                var exc = this.raisedException ? 
-                    this.exception : new Error(this);
-                throw exc;
-            }
-        }
-    } finally {
-        this.matchHook();
+  try {
+    enrich(this, options || {});
+    this.pass = true;
+    if (this.raisedException || this.actual !== expected) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = this.raisedException ?
+        this.exception : new Error(this);
+        throw exc;
+      }
     }
-    return this;
+  } finally {
+    this.matchHook();
+  }
+  return this;
 };
 Expectation.prototype.toBeTruthy = function (options) {
-    try {
-        enrich(this, options || {});
-        this.pass = true;
-        if (this.raisedException || !this.actual) {
-            this.pass = false;
-            if ( this.stopOnFailure ) {
-                var exc = new Error(this);
-                throw exc;
-            }
-        }
-    } finally {
-        this.matchHook();
+  try {
+    enrich(this, options || {});
+    this.pass = true;
+    if (this.raisedException || !this.actual) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = new Error(this);
+        throw exc;
+      }
     }
-    return this;
+  } finally {
+    this.matchHook();
+  }
+  return this;
 };
 Expectation.prototype.toMatch = function (regexp, options) {
-    try {
-        enrich(this, options || {});
-        this.pass = true;
-        regexp = new RegExp(regexp); // Check regexp
-        if (this.raisedException || ! regexp.test(this.actual.toString())) {
-            this.pass = false;
-            if ( this.stopOnFailure ) {
-                var exc = new Error(this);
-                throw exc;
-            }
-        }
-    } finally {
-        this.matchHook();
+  try {
+    enrich(this, options || {});
+    this.pass = true;
+    regexp = new RegExp(regexp); // Check regexp
+    if (this.raisedException || ! regexp.test(this.actual.toString())) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = new Error(this);
+        throw exc;
+      }
     }
-    return this;
+  } finally {
+    this.matchHook();
+  }
+  return this;
 };
 Expectation.prototype.toBeFunction = function (options) {
-    try {
-        enrich(this, options || {});
-        if ( typeof(this.actual) === 'function' ||
-             this.actual instanceof Function ) {
-            this.pass = true;
-        } else {
-            this.pass = false;
-        }
-        if (this.stopOnFailure) {
-            throw "Not a function " + this.actual;
-        }
-    } finally {
-        this.matchHook();
+  try {
+    enrich(this, options || {});
+    if ( typeof(this.actual) === 'function' ||
+    this.actual instanceof Function ) {
+      this.pass = true;
+    } else {
+      this.pass = false;
     }
-    return this;
+    if (this.stopOnFailure) {
+      throw "Not a function " + this.actual;
+    }
+  } finally {
+    this.matchHook();
+  }
+  return this;
 };
 Expectation.prototype.invoke = function () {
   try {
-      this.thunk = this.actual;
-      this.actual = undefined;
-      this.actual = this.thunk.call(this);
+    this.thunk = this.actual;
+    this.actual = undefined;
+    this.actual = this.thunk.call(this);
   } catch (exc) {
-      this.exception = exc;
-      this.raisedException = true;
+    this.exception = exc;
+    this.raisedException = true;
   } finally {
-      this.matchHook();
+    this.matchHook();
   }
   return this;
 };
 Expectation.prototype.toThrow = function () {
-    if ( ! this.thunk ) {
-        // Force invoke() if not yet done!
-        this.invoke();
+  if ( ! this.thunk ) {
+    // Force invoke() if not yet done!
+    this.invoke();
+  }
+  try {
+    if (this.raisedException) {
+      this.pass = true;
+    } else {
+      this.pass = false;
+      if (this.stopOnFailure) {
+        var exc = new Error(this);
+        throw exc;
+      }
     }
-    try {
-        if (this.raisedException) {
-            this.pass = true;
-        } else {
-            this.pass = false;
-            if (this.stopOnFailure) {
-                var exc = new Error(this);
-                throw exc;
-            }
-        }
-    } finally {
-        this.matchHook();
-    }
-    return this;
+  } finally {
+    this.matchHook();
+  }
+  return this;
 };
 Expectation.prototype.eval = function () {
   try {
@@ -381,11 +379,12 @@ Expectation.prototype.eval = function () {
   return this;
 };
 // Specific matcher telling that no more matchers will be applied on
-// the current expectation.
+// the current expectation. This triggers the expectation endHook sooner.
 Expectation.prototype.done = function () {
-    this.endHook();
-}
+  this.endHook();
+};
 
+// NOTA provide immutable front_* function to be a relay to a mutable one:
 function wrong_it (msg, f) {
   throw "Not within describe()" + msg + f;
 }
@@ -406,12 +405,14 @@ module.exports = {
   describe: describe,
   it:       front_it,
   expect:   front_expect,
+  load:     load,
+  // These classes are provided for hooks providers:
   class: {
     Description: Description,
     Specification: Specification,
     Expectation: Expectation
   },
-  load: load,
+  // These modules may be useful for yasmini-load-ed files:
   imports: {
       path: path,
       fs:   fs,

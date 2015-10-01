@@ -57,6 +57,15 @@ not (yet) support tests of callbacks. Yasmini is much simpler and
 offers other features that I found useful. So first, if you want to use
 Yasmini, look at Jasmine documentation on http://jasmine.github.io/
 
+One very important feature of Yasmini is that whenever an expectation is
+begun, checked, finished or a specification or a description the counters
+in these various instances are kept up to date. For instance the
+verbalizer of CodeGradX records the state of the descriptions in a file so,
+if the javascript process is killed from the outside (perhaps because it
+takes too much time), the final state of the tests can be known. Why killing
+from the outside ? Because programmers' code sometimes loops infinitely or
+waits indefinitely!
+
 ### Installation
 
 ```sh
@@ -82,7 +91,7 @@ Yasmini also exports some classes so you may write your own hooks.
 ### Description
 
 Tests are written within a Description. The first two arguments (the
-message and the behavior) are mandatory. The last argument sets
+message and the behavior) are mandatory. The optional third argument sets
 some options on the Description objects.
 All options are optional, their default value is shown below:
 
@@ -160,6 +169,8 @@ holds a number of fields:
 * `pass` a boolean that is true iff all expectations are passed successfully,
   if `expectationIntended` is specified then it should be equal to
    `expectationAttempted` and to `expectationSuccessful`.
+* `endHookException` if the endHook raises an exception. This is useful for
+  hooks providers.
 
 ### Expectation
 
@@ -199,6 +210,8 @@ of fields:
   with an exception
 * `exception` the exception if raisedException is true
 * `pass` a boolean that is true iff the expectation was successful.
+* `endHookException` if the endHook raises an exception. This is useful for
+  hooks providers.
 
 The expectation per se does not check anything, its methods (called Matchers
 in Jasmine parlance) will do the work. Depending on the matcher, the
@@ -250,3 +263,5 @@ Feel free to write your own adjunctions and share them!
 
 The `spec/ytests.js` is a test file written for Yasmini. It cannot
 be processed by Jasmine.
+
+The `yasmini-codegradx-verbalize` is an elaborate verbalizer.

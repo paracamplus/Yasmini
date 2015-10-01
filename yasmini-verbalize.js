@@ -35,16 +35,16 @@ yasmini.class.Expectation.prototype.matchHook = function () {
   this.specification.description.verbalization.push(msg);
   msg = '';
   if ( ! this.alreadyShownTest ) {
-      this.alreadyShownTest = true;
-      if ( this.verbose ) {
-          msg = 'Test #' + this.index + ' ';
-      }
-      if ( this.code ) {
-          msg = (msg || '') + "Je vais évaluer " + this.code;
-      }
-      if (msg) {
-          this.specification.description.verbalization.push(msg);
-      }
+    this.alreadyShownTest = true;
+    if ( this.verbose ) {
+      msg = 'Test #' + this.index + ' ';
+    }
+    if ( this.code ) {
+      msg = (msg || '') + "Je vais évaluer " + this.code;
+    }
+    if (msg) {
+      this.specification.description.verbalization.push(msg);
+    }
   }
 };
 yasmini.class.Expectation.prototype.endHook = function () {
@@ -66,22 +66,22 @@ yasmini.class.Specification.prototype.endHook = function () {
   var msg = "run endHook on specification #" + this.message;
   this.description.verbalization.push(msg);
   if (this.pass) {
-      msg = "Vous avez réussi " +
-        this.expectationSuccessful +
-        " de mes " +
-          this.expectationAttempted +
-        " tests.";
-    } else {
-      msg = "Vous n'avez réussi que " +
-        this.expectationSuccessful +
-        " de mes " +
-        (this.expectationIntended ?
-          this.expectationIntended :
-          this.expectationAttempted ) +
-        " tests.";
+    msg = "Vous avez réussi " +
+    this.expectationSuccessful +
+    " de mes " +
+    this.expectationAttempted +
+    " tests.";
+  } else {
+    msg = "Vous n'avez réussi que " +
+    this.expectationSuccessful +
+    " de mes " +
+    (this.expectationIntended ?
+      this.expectationIntended :
+      this.expectationAttempted ) +
+      " tests.";
     }
-  this.description.verbalization.push(msg);
-};
+    this.description.verbalization.push(msg);
+  };
 
 yasmini.class.Description.prototype.beginHook = function () {
   var msg = "run beginHook on description #" + this.message;
