@@ -42,6 +42,8 @@ yasmini.class.Expectation.prototype.beginHook = function () {
       var previousExpectation = this.specification.expectations[n-2];
       previousExpectation.endHook();
   }
+  this.update_();
+  printPartialResults_();
 };
 yasmini.class.Expectation.prototype.matchHook = function () {
     var msg;
@@ -57,13 +59,14 @@ yasmini.class.Expectation.prototype.matchHook = function () {
         }
         this.alreadyShownTest = true;
     }
-    this.specification.update_();
+    this.update_();
     printPartialResults_();
 };
 yasmini.class.Expectation.prototype.endHook = function () {
   if ( ! this.runEndHook ) {
-      verbalize('+ ', "running endHook on test #", this.index);
-      if (! this.pass) {
+      if (this.pass) {
+          //verbalize('+ Bravo');
+      } else {
           if ( this.raisedException ) {
               msg = "Échec du test #" + this.index +
                   " Exception signalée: " +
@@ -77,14 +80,19 @@ yasmini.class.Expectation.prototype.endHook = function () {
       }
       this.runEndHook = true;
   }
+  this.update_();
   printPartialResults_();
 };
 
 yasmini.class.Specification.prototype.beginHook = function () {
   var msg = this.message;
   verbalize('+ ', msg);
+  this.update_();
+  printPartialResults_();
 };
 yasmini.class.Specification.prototype.endHook = function () {
+  this.update_();
+  printPartialResults_();
   var msg;
   if (this.pass) {
       // Here expectationAttempted = expectationIntended
@@ -103,24 +111,28 @@ yasmini.class.Specification.prototype.endHook = function () {
         " tests.";
     }
   verbalize(msg);
-  config.attemptedExpectationsCount += 
-    this.expectationAttempted;
-  config.succeededExpectationsCount +=
-    this.expectationSuccessful;
-  printPartialResults_();
 };
 
 yasmini.class.Description.prototype.beginHook = function () {
   config.descriptions.push(this);
-  var msg = "+ Je vais tester la fonction " +
-     this.message;
+  var msg = "+ Je vais tester la fonction " + this.message;
   verbalize(msg);
+  this.update_();
+  printPartialResults_();
 };
 yasmini.class.Description.prototype.endHook = function () {
+  this.update_();
   printPartialResults_();
 };
 
 var printPartialResults_ = function () {
+    // Recompute attemptedExpectationsCount:
+  config.attemptedExpectationsCount = 0;
+  config.succeededExpectationsCount = 0;
+    config.descriptions.forEach(function (desc) {
+        config.attemptedExpectationsCount += desc.expectationAttempted;
+        config.succeededExpectationsCount += desc.expectationSuccessful;
+    });
     var msg = "" +
         "ATTEMPTEDEXPECTATIONSCOUNT=" + 
         config.attemptedExpectationsCount +
@@ -143,7 +155,9 @@ var printPartialResults_ = function () {
 var verbalize = function () {
     var result = '';
     for (var i=0 ; i<arguments.length ; i++) {
-        result += yasmini.imports.util.inspect(arguments[i]);
+        var s = yasmini.imports.util.inspect(arguments[i]);
+        s = s.slice(1,-1).replace("\\'", "'");;
+        result += s;
     }
     config.journal.push(result);
     printPartialResults_();

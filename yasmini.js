@@ -67,6 +67,8 @@ function Description (msg, f, options) {
   this.exception = null;
   this.specificationAttempted = 0;
   this.specificationSuccessful = 0;
+  this.expectationAttempted = 0;
+  this.expectationSuccessful = 0;
   this.pass = false;
 }
 Description.prototype.run = function () {
@@ -81,6 +83,8 @@ Description.prototype.endHook = function () {
 Description.prototype.update_ = function () {
     this.pass = true;
     // Recompute specificationSuccessful:
+    this.expectationAttempted = 0;
+    this.expectationSuccessful = 0;
     this.specificationSuccessful = 0;
     this.specifications.forEach(function (spec) {
         // One failed specification fails the entire description
@@ -89,6 +93,8 @@ Description.prototype.update_ = function () {
         } else {
             this.pass = false;
         }
+        this.expectationAttempted += spec.expectationAttempted;
+        this.expectationSuccessful += spec.expectationSuccessful;
     }, this);
     // check intended versus attempted:
     if ( this.specificationIntended &&
@@ -161,7 +167,6 @@ Specification.prototype.update_ = function () {
         this.pass = false;
     }
     // propagate to description:
-    //console.log(this);//DEBUG
     this.description.update_();
     return this;
 }
