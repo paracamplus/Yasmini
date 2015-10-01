@@ -328,6 +328,23 @@ Expectation.prototype.toBeFunction = function (options) {
   }
   return this;
 };
+Expectation.prototype.toBeA = function (className, options) {
+  try {
+    enrich(this, options || {});
+      this.pass = false;
+    if ( typeof(this.actual) === 'object' ) {
+        if ( this.actual.constructor === className ) {
+            this.pass = true;
+        }
+    }
+    if (! this.pass && this.stopOnFailure) {
+        throw "Not an instance of " + className;
+    }
+  } finally {
+    this.matchHook();
+  }
+  return this;
+};
 Expectation.prototype.invoke = function () {
   try {
     this.thunk = this.actual;
@@ -406,6 +423,7 @@ module.exports = {
   it:       front_it,
   expect:   front_expect,
   load:     load,
+  require:  require,
   // These classes are provided for hooks providers:
   class: {
     Description: Description,
@@ -414,6 +432,7 @@ module.exports = {
   },
   // These modules may be useful for yasmini-load-ed files:
   imports: {
+      module: module,
       path: path,
       fs:   fs,
       vm:   vm,

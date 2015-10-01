@@ -113,19 +113,19 @@ yasmini.class.Specification.prototype.endHook = function () {
     verbalize(msg);
   };
 
-  yasmini.class.Description.prototype.beginHook = function () {
+yasmini.class.Description.prototype.beginHook = function () {
     config.descriptions.push(this);
     var msg = "+ Je vais tester la fonction " + this.message;
     verbalize(msg);
     this.update_();
     printPartialResults_();
   };
-  yasmini.class.Description.prototype.endHook = function () {
+yasmini.class.Description.prototype.endHook = function () {
     this.update_();
     printPartialResults_();
   };
 
-  var printPartialResults_ = function () {
+var printPartialResults_ = function () {
     // Recompute attemptedExpectationsCount and succeededExpectationsCount:
     config.attemptedExpectationsCount = 0;
     config.succeededExpectationsCount = 0;
@@ -145,14 +145,14 @@ yasmini.class.Specification.prototype.endHook = function () {
     });
     msg += "\n";
     fs.writeFileSync(config.resultFile, msg);
-  };
+ };
 
   /**
   * verbalize some facts.
   * @param Configuration config
   * @param Any...        message fragments
   */
-  var verbalize = function () {
+var verbalize = function () {
     var result = '';
     for (var i=0 ; i<arguments.length ; i++) {
       var s = yasmini.imports.util.inspect(arguments[i]);
@@ -163,10 +163,13 @@ yasmini.class.Specification.prototype.endHook = function () {
     printPartialResults_();
   };
 
-  var evalStudentCode_ = function (config, codefile) {
+var evalStudentCode_ = function (config, codefile) {
     verbalize("+ ", "Je vais évaluer votre code.");
     var src = fs.readFileSync(codefile);
-    config.module = vm.createContext({});
+    config.module = vm.createContext({
+       // allow student's code to require some Node modules:
+       require: yasmini.imports.module.require
+    });
     // Evaluate that file:
     try {
       vm.runInContext(src, config.module, { filename: codefile });
@@ -215,11 +218,12 @@ var runTests_ = function (config, specfile) {
   // NOTA: this pollutes the current environment with student's functions:
   var current = vm.runInThisContext("this");
   enrich(current, config.module, {
-    yasmini:  yasmini,
-    describe: yasmini.describe,
-    it:       yasmini.it,
-    expect:   yasmini.expect,
-    verbalize: verbalize
+    yasmini:   yasmini,
+    describe:  yasmini.describe,
+    it:        yasmini.it,
+    expect:    yasmini.expect,
+    verbalize: verbalize,
+    require:   yasmini.imports.module.require
   });
   verbalize("+ ", "Je vais tourner votre code avec mes tests");
   vm.runInNewContext(src, current);

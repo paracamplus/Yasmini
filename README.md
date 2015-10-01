@@ -180,6 +180,7 @@ argument and optionally some options.
 ```javascript
 expect(actual).toBe(expected)
 expect(actual).toBeTruthy()
+expect(actual).toBeA(Class)
 expect(actual).toMatch(regexp)
 expect(string).eval()...
 expect(function).toThrow()
@@ -232,6 +233,10 @@ according to Javascript.
 
 Then comes `toBe(expected)` which checks that `actual` is identical to
 `expected`.
+
+The `toBeTruthy()` checks whether `actual` is true with Javascript conventions.
+
+The `toBeA(classname)` checks whether `actual` is an instance of `classname`.
 
 The `toMatch(regexp)` matcher converts `actual` to a string and checks
 whether the regexp acccepts it.
