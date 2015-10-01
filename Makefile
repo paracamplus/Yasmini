@@ -1,5 +1,5 @@
 work : tests update pack install publish
-clean :: cleanMakefile
+clean :
 	-rm npm-debug.log
 
 tests : test.with.jasmine test.with.yasmini

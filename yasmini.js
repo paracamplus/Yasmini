@@ -332,7 +332,7 @@ Expectation.prototype.invoke = function () {
   try {
     this.thunk = this.actual;
     this.actual = undefined;
-    this.actual = this.thunk.call(this);
+    this.actual = this.thunk.apply(this, arguments);
   } catch (exc) {
     this.exception = exc;
     this.raisedException = true;

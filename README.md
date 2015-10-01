@@ -183,11 +183,15 @@ expect(actual).toBeTruthy()
 expect(actual).toMatch(regexp)
 expect(string).eval()...
 expect(function).toThrow()
+expect(function).invoke(values...)...
+expect(actual).done();
+
+// More complex example:
 expect(something, {
   stopOnFailure: s.stopOnFailure,
   verbose: s.verbose,
   code: "string"
-}).eval().toThrow().toBeTruthy().toBe(something)
+}).eval().invoke(1, 2, 3).toBeTruthy().toBe(something).done();
 ```
 
 First the arguments are computed and given to the `expect` function. An
@@ -236,8 +240,9 @@ The `toThrow` matcher considers `actual` to be a thunk (a function without
 argument) to invoke; it then checks that the function throws something.
 This matcher invokes the `invoke` matcher if not yet done.
 
-The `invoke` matcher considers `actual` to be a thunk (a function without
-argument) to invoke; `actual` is reset to the obtained value.
+The `invoke` matcher considers `actual` to be a function to invoke
+(possibly with some arguments); `actual` is reset to the obtained
+value.
 
 The `eval` matcher considers `actual` to be a string which must be `eval`-ed.
 The resulting value will replace `actual` so you may chain this matcher
