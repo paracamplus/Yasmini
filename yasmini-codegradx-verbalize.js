@@ -184,7 +184,7 @@ yasmini.class.Specification.prototype.endHook = function () {
       }
     } catch (exc) {
       // Bad syntax or incorrect compilation throw an Error
-      var msg = "Je n'ai pas réussi à évaluer votre code: " +
+      var msg = "Votre code n'est pas entièrement satisfaisant: " +
       exc.toString();
       msg = msg.replace(/\n/gm, "\n#");
       verbalize("-- ", msg);

@@ -344,7 +344,7 @@ Expectation.prototype.invoke = function () {
 Expectation.prototype.toThrow = function () {
   if ( ! this.thunk ) {
     // Force invoke() if not yet done!
-    this.invoke();
+    this.invoke.apply(this, arguments);
   }
   try {
     if (this.raisedException) {
