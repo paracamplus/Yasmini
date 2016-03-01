@@ -436,7 +436,8 @@ module.exports = {
       path: path,
       fs:   fs,
       vm:   vm,
-      util: util
+      util: util,
+      console: console
   }
 };
 module.exports.yasmini = module.exports;

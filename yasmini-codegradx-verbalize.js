@@ -168,7 +168,8 @@ var evalStudentCode_ = function (config, codefile) {
     var src = fs.readFileSync(codefile);
     config.module = vm.createContext({
        // allow student's code to require some Node modules:
-       require: yasmini.imports.module.require
+       require: yasmini.imports.module.require,
+       console: yasmini.imports.console
     });
     // Evaluate that file:
     try {
