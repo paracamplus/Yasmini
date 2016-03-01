@@ -2,6 +2,8 @@ work : tests update pack install publish
 clean :
 	-rm npm-debug.log
 
+# ############## Working rules:
+
 tests : test.with.jasmine test.with.yasmini
 	@echo;echo "    ALL TESTS SUCCESSFUL ";echo
 test.with.jasmine :
