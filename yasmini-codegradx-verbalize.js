@@ -181,7 +181,7 @@ var evalStudentCode_ = function (config, codefile) {
         var f = config.module[fname];
         //printerr(f);
         if ( ! ( typeof(f) === 'function' ||
-        f instanceof Function ) ) {
+             f instanceof Function ) ) {
           verbalize("- ", fname, " n'est pas une fonction");
           throw "Not a function " + fname;
         }
@@ -189,14 +189,14 @@ var evalStudentCode_ = function (config, codefile) {
     } catch (exc) {
       // Bad syntax or incorrect compilation throw an Error
       var msg = "Votre code n'est pas entièrement satisfaisant: " +
-      exc.toString();
+            exc.toString();
       msg = msg.replace(/\n/gm, "\n#");
       verbalize("-- ", msg);
       throw msg;
     } finally {
       printPartialResults_();
     }
-  };
+};
 
 /*
 * Enrich an object with a number of sources (processed from left to right).
