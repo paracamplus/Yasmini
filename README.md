@@ -234,8 +234,6 @@ according to Javascript.
 Then comes `toBe(expected)` which checks that `actual` is identical to
 `expected`.
 
-The `toBeTruthy()` checks whether `actual` is true with Javascript conventions.
-
 The `toBeA(classname)` checks whether `actual` is an instance of `classname`.
 
 The `toMatch(regexp)` matcher converts `actual` to a string and checks
@@ -257,6 +255,10 @@ All matchers run the `matchHook` hook and return the input
 `Expectation` so they may be chained. Note however that expectations
 are counted but not matchers so `expect(...).toBe(true).toBeTruthy()`
 only counts for one expectation.
+
+If an expectation fails and `stopOnFailure` is true then a
+`YasminiException` (a kind of `Error`) is thrown with an `expectation`
+property set with the failed expectation.
 
 # Adjunctions
 

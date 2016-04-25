@@ -177,6 +177,10 @@ describe("Yasmini library: a light Jasmine framework", function () {
       expect(it1.expectationAttempted).toBe(1);
       expect(it1.expectationSuccessful).toBe(1);
       expect(it1.expectations[0].pass).toBe(false);
+      expect(it1.expectations[0].raisedException).toBe(true);
+      var error = it1.expectations[0].exception;
+      expect(error instanceof YasminiException).toBe(true);
+      expect(error.expectation).toBe(it1.expectations[0]);
     });
   });
 

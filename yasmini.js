@@ -258,6 +258,12 @@ function mk_expect (spec) {
   return new_expect;
 }
 
+function YasminiException (expectation) {
+    this.expectation = expectation;
+}
+YasminiException.prototype = Error.prototype;
+YasminiException.prototype.constructor = YasminiException;
+
 // Matchers
 // FUTURE: should not be used after endHook()
 
@@ -269,7 +275,7 @@ Expectation.prototype.toBe = function (expected, options) {
       this.pass = false;
       if ( this.stopOnFailure ) {
         var exc = this.raisedException ?
-        this.exception : new Error(this);
+            this.exception : new Error(this);
         throw exc;
       }
     }
