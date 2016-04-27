@@ -35,36 +35,54 @@ yasmini.newline = "\n";
 // New methods on Yasmini concepts:
 yasmini.class.Description.prototype.beginHook = function () {
     yasmini.outputter('[' + he.encode(this.message) + yasmini.newline + " ");
-    this.stopOnFailure = true;
 };
 
 yasmini.class.Description.prototype.endHook = function () {
     var msg = '';
-    if ( this.pass ) {
+    if ( this.exception ) {
+        msg = this.exception.toString();
+    } else {
         msg = ']';
     }
     yasmini.outputter(msg + yasmini.newline);
 };
 
 yasmini.class.Specification.prototype.beginHook = function () {
+    this.stopOnFailure = true;
     yasmini.outputter('(' + he.encode(this.message) + yasmini.newline + "  ");
 };
 
 yasmini.class.Specification.prototype.endHook = function () {
     var msg = '';
-    if ( this.pass ) {
-        msg = ')';
+    if ( this.exception ) {
+        throw this.exception;
     } else {
-        var exc = this.exception;
-        if ( exc && exc instanceof Failure ) {
-            msg = exc.toString();
-        }
+        msg = ')';
     }
     yasmini.outputter(msg + yasmini.newline + " ");
 };
 
 yasmini.class.Expectation.prototype.endHook = function () {
-    yasmini.outputter('.');
-};    
+    if ( this.pass ) {
+        yasmini.outputter('.');
+    } else {
+        yasmini.outputter('!');
+    }
+};
+ 
+yasmini.class.Failure.prototype.toString = function () {
+    var it = this.expectation;
+    var msg = "Failure!\n  the argument of expect() is " +
+        it.actual + "\n  and does not satisfy " +
+        this.matcher.toString() + '()';
+    if ( it.exception ) {
+        if ( it.raisedException ) {
+            msg += ' raised ' + it.exception;
+        } else {
+            msg += ' fails with ' + it.exception;
+        }
+    }
+    return msg;
+}
 
 // end of yasmini-verbose-verbalizer.js

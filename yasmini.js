@@ -279,7 +279,7 @@ Object.setPrototypeOf(Failure.prototype, Error.prototype);
 
 Failure.prototype.toString = function () {
     var it = this.expectation;
-    var msg = "YasminiFailure on expect(" +
+    var msg = "Failure on expect(" +
         it.actual + ').' +
         this.matcher.toString() + '(...)';
     if ( it.exception ) {

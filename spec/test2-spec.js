@@ -253,6 +253,18 @@ describe("Yasmini library: a light Jasmine framework", function () {
     });
   });
 
+  it("first spec fails", function () {
+      var ydesc;
+      yasmini.describe("Yasmini: first spec fails", function () {
+          ydesc = this;
+          yasmini.it("immediately fails", function () {
+              yasmini.expect(3 - "foo").toBe(something);
+          });
+          //console.log(ydesc);
+          expect(ydesc.specification.length).toBe(1);
+      });
+  });
+
   it("should offer expect.invoke with exception", function () {
     yasmini.describe("Yasmini: should offer expect.invoke with exception",
     function () {
