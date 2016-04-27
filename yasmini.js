@@ -258,16 +258,24 @@ function mk_expect (spec) {
   return new_expect;
 }
 
-function YasminiException (expectation) {
+function Failure (expectation, args) {
     this.expectation = expectation;
+    this.matcher = args.callee;
+    this.args = args;
 }
-YasminiException.prototype = Error.prototype;
-YasminiException.prototype.constructor = YasminiException;
+Object.setPrototypeOf(Failure.prototype, Error.prototype);
 
 // Matchers
 // FUTURE: should not be used after endHook()
 
-Expectation.prototype.toBe = function (expected, options) {
+function defineMatcher(name, fn) {
+    Expectation.prototype[name] = fn;
+    fn.toString = function () {
+        return name;
+    };
+}
+
+defineMatcher('toBe', function (expected, options) {
   try {
     enrich(this, options || {});
     this.pass = true;
@@ -275,7 +283,7 @@ Expectation.prototype.toBe = function (expected, options) {
       this.pass = false;
       if ( this.stopOnFailure ) {
         var exc = this.raisedException ?
-            this.exception : new Error(this);
+            this.exception : new Failure(this, arguments);
         throw exc;
       }
     }
@@ -283,15 +291,16 @@ Expectation.prototype.toBe = function (expected, options) {
     this.matchHook();
   }
   return this;
-};
-Expectation.prototype.toBeTruthy = function (options) {
+});
+
+defineMatcher('toBeTruthy', function (options) {
   try {
     enrich(this, options || {});
     this.pass = true;
     if (this.raisedException || !this.actual) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Error(this);
+        var exc = new Failure(this, arguments);
         throw exc;
       }
     }
@@ -299,8 +308,9 @@ Expectation.prototype.toBeTruthy = function (options) {
     this.matchHook();
   }
   return this;
-};
-Expectation.prototype.toMatch = function (regexp, options) {
+});
+
+defineMatcher('toMatch', function (regexp, options) {
   try {
     enrich(this, options || {});
     this.pass = true;
@@ -308,7 +318,7 @@ Expectation.prototype.toMatch = function (regexp, options) {
     if (this.raisedException || ! regexp.test(this.actual.toString())) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Error(this);
+        var exc = new Failure(this, arguments);
         throw exc;
       }
     }
@@ -316,8 +326,9 @@ Expectation.prototype.toMatch = function (regexp, options) {
     this.matchHook();
   }
   return this;
-};
-Expectation.prototype.toBeFunction = function (options) {
+});
+
+defineMatcher('toBeFunction', function (options) {
   try {
     enrich(this, options || {});
     if ( typeof(this.actual) === 'function' ||
@@ -333,8 +344,9 @@ Expectation.prototype.toBeFunction = function (options) {
     this.matchHook();
   }
   return this;
-};
-Expectation.prototype.toBeA = function (className, options) {
+});
+
+defineMatcher('toBeA', function (className, options) {
   try {
     enrich(this, options || {});
       this.pass = false;
@@ -350,8 +362,9 @@ Expectation.prototype.toBeA = function (className, options) {
     this.matchHook();
   }
   return this;
-};
-Expectation.prototype.invoke = function () {
+});
+
+defineMatcher('invoke', function () {
   try {
     this.thunk = this.actual;
     this.actual = undefined;
@@ -363,8 +376,9 @@ Expectation.prototype.invoke = function () {
     this.matchHook();
   }
   return this;
-};
-Expectation.prototype.toThrow = function () {
+});
+
+defineMatcher('toThrow', function () {
   if ( ! this.thunk ) {
     // Force invoke() if not yet done!
     this.invoke.apply(this, arguments);
@@ -375,7 +389,7 @@ Expectation.prototype.toThrow = function () {
     } else {
       this.pass = false;
       if (this.stopOnFailure) {
-        var exc = new Error(this);
+        var exc = new Failure(this, arguments);
         throw exc;
       }
     }
@@ -383,8 +397,9 @@ Expectation.prototype.toThrow = function () {
     this.matchHook();
   }
   return this;
-};
-Expectation.prototype.eval = function () {
+});
+
+defineMatcher('eval', function () {
   try {
     this.code = this.actual;
     this.actual = undefined;
@@ -400,7 +415,8 @@ Expectation.prototype.eval = function () {
       this.matchHook();
   }
   return this;
-};
+});
+
 // Specific matcher telling that no more matchers will be applied on
 // the current expectation. This triggers the expectation endHook sooner.
 Expectation.prototype.done = function () {
@@ -432,9 +448,10 @@ module.exports = {
   require:  require,
   // These classes are provided for hooks providers:
   class: {
-    Description: Description,
+    Description:   Description,
     Specification: Specification,
-    Expectation: Expectation
+    Expectation:   Expectation,
+    Failure:       Failure
   },
   // These modules may be useful for yasmini-load-ed files:
   imports: {

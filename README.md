@@ -256,9 +256,10 @@ All matchers run the `matchHook` hook and return the input
 are counted but not matchers so `expect(...).toBe(true).toBeTruthy()`
 only counts for one expectation.
 
-If an expectation fails and `stopOnFailure` is true then a
-`YasminiException` (a kind of `Error`) is thrown with an `expectation`
-property set with the failed expectation.
+If an expectation fails and `stopOnFailure` is true then a `Failure`
+(a kind of `Error`) is thrown with an `expectation` property set with
+the failed expectation, a `matcher` property with the failed matcher and
+an `args` property with the arguments of the failed matcher.
 
 # Adjunctions
 

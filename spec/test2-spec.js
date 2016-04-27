@@ -167,20 +167,32 @@ describe("Yasmini library: a light Jasmine framework", function () {
   it("should offer multiple expect not all true with exception", function () {
     yasmini.describe("Yasmini: should offer multiple expect not all true",
     function () {
-      var it1 = yasmini.it("should run it", function () {
-        yasmini.expect(41).toBe("euh");
-        yasmini.expect(true).toBe(true);
-      }, {
-        stopOnFailure: true
-      });
-      expect(it1.expectations.length).toBe(1);
-      expect(it1.expectationAttempted).toBe(1);
-      expect(it1.expectationSuccessful).toBe(1);
-      expect(it1.expectations[0].pass).toBe(false);
-      expect(it1.expectations[0].raisedException).toBe(true);
-      var error = it1.expectations[0].exception;
-      expect(error instanceof YasminiException).toBe(true);
-      expect(error.expectation).toBe(it1.expectations[0]);
+        var spec1 = this;
+        var it1, it11;
+        try {
+            it11 = yasmini.it("should run it", function () {
+                it1 = this;
+                yasmini.expect(41).toBe("euh");
+                fail('should not arrive here!');
+            }, {
+                stopOnFailure: true
+            });
+        } catch (exc) {
+            expect(it11).toBe(undefined);
+            expect(it1.expectations.length).toBe(1);
+            expect(it1.expectationAttempted).toBe(1);
+            expect(it1.expectationSuccessful).toBe(0);
+            expect(it1.expectations[0].pass).toBe(false);
+            expect(it1.expectations[0].raisedException).toBe(false);
+            expect(it1.raisedException).toBe(true);
+            var error = it1.exception;
+            expect(error.expectation).toBe(it1.expectations[0]);
+            expect(error.expectation.actual).toBe(41);
+            expect(error.matcher.toString()).toBe('toBe');
+            expect(error.args[0]).toBe('euh');
+            expect(error instanceof yasmini.class.Failure).toBe(true);
+            expect(error instanceof Error).toBe(true);
+        }
     });
   });
 
