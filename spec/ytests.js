@@ -3,7 +3,8 @@
 var yasmini = require('../yasmini.js');
 var describe = yasmini.describe,
     it       = yasmini.it,
-    expect   = yasmini.expect;
+    expect   = yasmini.expect,
+    fail     = yasmini.fail;
 yasmini.load('yasmini-verbalize.js');
 
 var d1 = describe("some program", function () {

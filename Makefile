@@ -10,7 +10,9 @@ test.with.jasmine :
 	jasmine spec/test2-spec.js
 	jasmine spec/verbalize2-spec.js
 test.with.yasmini :
-	node spec/y*.js
+	cd spec/ && ln -sf ../node_modules .
+	node spec/ytests.js
+	node spec/ytestfact.js
 
 pack : clean
 	-rm -f ../yasmini.tgz

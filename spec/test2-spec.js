@@ -189,11 +189,52 @@ describe("Yasmini library: a light Jasmine framework", function () {
             expect(error.expectation).toBe(it1.expectations[0]);
             expect(error.expectation.actual).toBe(41);
             expect(error.matcher.toString()).toBe('toBe');
+            //console.log(error.toString());
+            expect(error.toString()).toMatch(/expect\(41\).toBe/);
             expect(error.args[0]).toBe('euh');
             expect(error instanceof yasmini.class.Failure).toBe(true);
             expect(error instanceof Error).toBe(true);
         }
     });
+  });
+
+  it("should offer fail()", function () {
+      var ydesc, step = 0;
+      yasmini.describe("Yasmini: should offer fail()", 
+      function () {
+          ydesc = this;
+          yasmini.it("explicit call to fail", 
+          function () {
+              yasmini.expect(function () {
+                  yasmini.fail("should fail here!");
+                  step = 1;
+              }).toThrow();
+          });
+      });
+      expect(step).toBe(0);
+      //console.log(ydesc);
+  });
+
+  it("should offer fail()", function () {
+      var ydesc, step = 0;
+      yasmini.describe("Yasmini: should offer fail()", 
+      function () {
+          function shouldFail () {
+              // will provoke: RangeError: Maximum call stack size exceeded
+              return 3 * shouldFail();
+          }
+          ydesc = this;
+          yasmini.it("explicit call to fail", 
+          function () {
+              expect(function () {
+                  shouldFail();
+                  step = 1;
+                  fail("should not arrive here!");
+              }).toThrow();
+          });
+      });
+      expect(step).toBe(0);
+      //console.log(ydesc);
   });
 
   it("should offer expect.invoke", function () {

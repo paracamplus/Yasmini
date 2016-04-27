@@ -32,7 +32,9 @@ function load (filename) {
   var f = path.join(__dirname, filename);
   var src = fs.readFileSync(f);
   vm.runInNewContext(src, {
-    yasmini: module.exports
+    yasmini: module.exports,
+    require: require,
+    console: console
   });
 }
 
@@ -176,6 +178,7 @@ function mk_it (description) {
       spec.beginHook();
       description.specificationAttempted++;
       inner_expect = mk_expect(spec);
+      inner_fail = mk_fail(spec);
       spec.run();
     } catch (exc) {
       spec.exception = exc;
@@ -186,6 +189,7 @@ function mk_it (description) {
       }
     } finally {
       inner_expect = wrong_expect;
+      inner_fail = wrong_fail;
       spec.expectations.forEach(function (expectation) {
           try {
               expectation.endHook();
@@ -258,12 +262,35 @@ function mk_expect (spec) {
   return new_expect;
 }
 
+function mk_fail (spec) {
+    var new_fail = function (msg) {
+        var failure = new Failure(null, [msg]);
+        throw failure;
+    };
+    return new_fail;
+}
+
 function Failure (expectation, args) {
     this.expectation = expectation;
     this.matcher = args.callee;
     this.args = args;
 }
 Object.setPrototypeOf(Failure.prototype, Error.prototype);
+
+Failure.prototype.toString = function () {
+    var it = this.expectation;
+    var msg = "YasminiFailure on expect(" +
+        it.actual + ').' +
+        this.matcher.toString() + '(...)';
+    if ( it.exception ) {
+        if ( it.raisedException ) {
+            msg += ' raised ' + it.exception;
+        } else {
+            msg += ' fails with ' + it.exception;
+        }
+    }
+    return msg;
+}
 
 // Matchers
 // FUTURE: should not be used after endHook()
@@ -440,10 +467,19 @@ function front_expect () {
   return inner_expect.apply(this, arguments);
 }
 
+function wrong_fail () {
+    throw "Not within it()";
+}
+var inner_fail = wrong_fail;
+function front_fail () {
+    return inner_fail.apply(this, arguments);
+}
+
 module.exports = {
   describe: describe,
   it:       front_it,
   expect:   front_expect,
+  fail:     front_fail,
   load:     load,
   require:  require,
   // These classes are provided for hooks providers:
