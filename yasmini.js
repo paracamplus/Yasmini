@@ -25,17 +25,21 @@ var util = require('util');
 
 /*
 * Load utility. The utility file should be stored aside yasmini.js
-* It will be loaded in the very environment of Yasmini.
+* that is, in the same directory. The file is loaded in its own context
+* optionally enriched by some bindings.
 */
 
-function load (filename) {
+function load (filename, bindings) {
   var f = path.join(__dirname, filename);
   var src = fs.readFileSync(f);
-  vm.runInNewContext(src, {
+  var newglobal = {
     yasmini: module.exports,
     require: require,
     console: console
-  });
+  };
+  newglobal = enrich(newglobal, bindings || {});
+  vm.runInNewContext(src, newglobal);
+  module.exports.plugins.push(filename);
 }
 
 /*
@@ -279,9 +283,12 @@ Object.setPrototypeOf(Failure.prototype, Error.prototype);
 
 Failure.prototype.toString = function () {
     var it = this.expectation;
-    var msg = "Failure on expect(" +
-        it.actual + ').' +
-        this.matcher.toString() + '(...)';
+    var msg = "Failure";
+    if ( it && it.actual && this.matcher ) {
+        msg += " on expect(" +
+            it.actual + ').' +
+            this.matcher.toString() + '(...)';
+    }
     if ( it.exception ) {
         if ( it.raisedException ) {
             msg += ' raised ' + it.exception;
@@ -489,6 +496,8 @@ module.exports = {
     Expectation:   Expectation,
     Failure:       Failure
   },
+  // record 
+  plugins: [],
   // These modules may be useful for yasmini-load-ed files:
   imports: {
       module: module,

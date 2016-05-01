@@ -83,7 +83,7 @@ var yasmini = require('yasmini');
 var describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect;
-yasmini.load('yasmini-verbalize.js');
+yasmini.load('yasmini-verbalize.js', {myfunction: myfunction});
 ```
 
 Yasmini also exports some classes so you may write your own hooks.
@@ -267,14 +267,31 @@ The file `yasmini-verbalize.js` is an example of an adjunction to Yasmini.
 It verbalizes in French the results of the tests. Defining `beginHook` and
 `endHook` on `Description`, `Specification` and `Expectation` does the trick.
 
-Adjunctions files must be stored aside the `yasmini.js` file and are loaded
-with the `yasmini.load` function (which provides the `yasmini` global variable).
+Adjunctions files must be stored aside the `yasmini.js` file that is,
+in the same directory, and are loaded with the `yasmini.load` function
+(which provides the `yasmini` global variable). It is possible to
+provide a second argument defining bindings for the adjoined file.
 
 Feel free to write your own adjunctions and share them!
 
-# Example
+# Examples
 
 The `spec/ytests.js` is a test file written for Yasmini. It cannot
 be processed by Jasmine.
 
-The `yasmini-codegradx-verbalize` is an elaborate verbalizer.
+The `yasmini-verbose-verbalize.js` file is a simple verbalizer that
+displays description messages, specification messages followed by
+dots for successful expectations. Something like:
+
+```
+[description
+ (it .....)
+ (another it ...!Failure!
+ ```
+
+The `yasmini-verbalize.js` file traces every description, specification
+and expectation and accumulates these traces in the `verbalization` property
+of Description instances. It is up to you to display them.
+
+The `yasmini-codegradx-verbalize` is a more elaborate verbalizer to
+be used with the CodeGradX infrastructure.

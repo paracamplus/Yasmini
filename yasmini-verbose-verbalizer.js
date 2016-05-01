@@ -49,7 +49,7 @@ yasmini.class.Description.prototype.endHook = function () {
 
 yasmini.class.Specification.prototype.beginHook = function () {
     this.stopOnFailure = true;
-    yasmini.outputter('(' + he.encode(this.message) + yasmini.newline + "  ");
+    yasmini.outputter('(' + he.encode(this.message) + " ");
 };
 
 yasmini.class.Specification.prototype.endHook = function () {
