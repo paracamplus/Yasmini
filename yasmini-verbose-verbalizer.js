@@ -17,11 +17,19 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 See https://github.com/paracamplus/Yasmini.git
 
-This module is loaded with yasmini.load("yasmini-verbose-verbalize.js");
+This module is loaded with yasmini.load("yasmini-verbose-verbalizer.js");
 therefore the yasmini global variable is defined. This module
 defines the hooks for Expectation, Specification and Description
-in order to verbalize what happens during the tests. Verbalization
-bubbles up and finishes in Description.verbalization.
+in order to verbalize what happens during the tests. This plugin
+is used in the browser with a specific outputter variable that
+displays what happens into a DOM node.
+
+The result looks like (with one Description containing one
+Specification containing two successful Expectations):
+
+  [min3
+   (case a ..)
+   ]
 
 */
 

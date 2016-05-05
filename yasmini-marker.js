@@ -20,13 +20,14 @@ See https://github.com/paracamplus/Yasmini.git
 This module is loaded with yasmini.load("yasmini-marker.js");
 therefore the yasmini global variable is defined. This module
 describes how student's code (and tests) are run and compared to
-teacher's code.
+teacher's code. This plugin is run within CodeGradX infrastructure to
+generate the student's report.
 
 */
 
-var fs = yasmini.imports.fs;
-var path = yasmini.imports.path;
-var vm = yasmini.imports.vm;
+var fs = require('fs');
+var path = require('path');
+var vm = require('vm');
 var config;
 
 /*
@@ -169,8 +170,9 @@ var evalStudentCode_ = function (config, codefile) {
     // Evaluate that file:
     try {
         vm.runInContext(src, config.module, { filename: codefile });
-        verbalize("+ Voici ce que j'obtiens:");
-        verbalize("# " + config.resultDir + '/s.out');
+        // sometimes there is no output, maybe adapt this message:
+        //verbalize("+ Voici ce que j'obtiens:");
+        //verbalize("# " + config.resultDir + '/s.out');
 
         // Check that student's code is coherent wrt its own tests:
         var coherent = true;

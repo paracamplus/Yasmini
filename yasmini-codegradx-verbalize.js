@@ -24,9 +24,9 @@ in order to verbalize what happens during the tests.
 
 */
 
-var fs = yasmini.imports.fs;
-var path = yasmini.imports.path;
-var vm = yasmini.imports.vm;
+var fs = require('fs');
+var path = require('path');
+var vm = require('vm');
 var config = yasmini.config;
 
 yasmini.class.Expectation.prototype.beginHook = function () {

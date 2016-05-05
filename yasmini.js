@@ -496,9 +496,9 @@ module.exports = {
     Expectation:   Expectation,
     Failure:       Failure
   },
-  // record 
+  // record which plugins are yasmini.loaded:
   plugins: [],
-  // These modules may be useful for yasmini-load-ed files:
+  // These modules may be useful for yasmini.load-ed files:
   imports: {
       module: module,
       path: path,
