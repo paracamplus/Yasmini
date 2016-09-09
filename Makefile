@@ -33,7 +33,7 @@ publish : clean
 yasmini.tgz : clean
 	-rm -rf tmp
 	mkdir -p tmp
-	cd tmp/ && git clone https://github.com/Paracamplus/yasmini.git
+	cd tmp/ && git clone https://github.com/paracamplus/Yasmini.git
 	rm -rf tmp/yasmini/.git
 	cp -p package.json tmp/yasmini/ 
 	tar czf yasmini.tgz -C tmp yasmini

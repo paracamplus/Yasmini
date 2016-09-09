@@ -229,10 +229,16 @@ alter the content of these fields.
 ### Matchers
 
 The simplest matcher is `toBeTruthy` which checks that `actual` is true
-according to Javascript.
+according to Javascript. `toBeFalsy` is the opposite matcher.
 
 Then comes `toBe(expected)` which checks that `actual` is identical to
-`expected`.
+`expected`. Variants are `toBeNull`, `toBeDefined`, `toBeUndefined`
+and `toBeNaN`. A related matcher is `toBeFunction`.
+
+To compare numbers you have `toBeGreaterThan` and `toBeLessThan` that
+implements strict comparison. Approximate comparison can be checked
+with `toBeClose(expected, precision)`: the `actual` result should be
+in the vicinity of `expected` plus or minus 10 to the `precision` power.
 
 The `toBeA(classname)` checks whether `actual` is an instance of `classname`.
 
@@ -260,6 +266,9 @@ If an expectation fails and `stopOnFailure` is true then a `Failure`
 (a kind of `Error`) is thrown with an `expectation` property set with
 the failed expectation, a `matcher` property with the failed matcher and
 an `args` property with the arguments of the failed matcher.
+
+Caution: Jasmine offers some matchers that are not yet present in Yasmini:
+some of them are `not`, `toContain`, `toEqual`.
 
 # Adjunctions
 
