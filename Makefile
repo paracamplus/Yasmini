@@ -24,24 +24,24 @@ publish : clean
 	git status .
 	-git commit -m "NPM publication `date`" .
 	git push
-	-rm -f Yasmini.tgz
-	m Yasmini.tgz install
-	cd tmp/Yasmini/ && npm version patch && npm publish
-	cp -pf tmp/Yasmini/package.json .
+	-rm -f yasmini.tgz
+	m yasmini.tgz install
+	cd tmp/yasmini/ && npm version patch && npm publish
+	cp -pf tmp/yasmini/package.json .
 	rm -rf tmp
 
-Yasmini.tgz : clean
+yasmini.tgz : clean
 	-rm -rf tmp
 	mkdir -p tmp
-	cd tmp/ && git clone https://github.com/Paracamplus/Yasmini.git
-	rm -rf tmp/Yasmini/.git
-	cp -p package.json tmp/Yasmini/ 
-	tar czf Yasmini.tgz -C tmp Yasmini
-	tar tzf Yasmini.tgz
+	cd tmp/ && git clone https://github.com/Paracamplus/yasmini.git
+	rm -rf tmp/yasmini/.git
+	cp -p package.json tmp/yasmini/ 
+	tar czf yasmini.tgz -C tmp yasmini
+	tar tzf yasmini.tgz
 
 REMOTE	=	www.paracamplus.com
 install : 
-	rsync -avu ../Yasmini.tgz \
+	rsync -avu ../yasmini.tgz \
 	    ${REMOTE}:/var/www/www.paracamplus.com/Resources/Javascript/
 
 update :
