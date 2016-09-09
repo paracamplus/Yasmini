@@ -46,7 +46,5 @@ install :
 
 update :
 	npm version patch
-publish :
-	npm publish
 
 # end of Makefile
