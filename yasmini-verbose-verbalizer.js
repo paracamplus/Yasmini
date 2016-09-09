@@ -77,6 +77,9 @@ yasmini.class.Expectation.prototype.endHook = function () {
         yasmini.outputter('!');
     }
 };
+
+yasmini.message.en.failure1 = "Failure!\n  the argument of expect() is ";
+yasmini.message.en.failure2 = "\n  and does not satisfy ";
  
 yasmini.class.Failure.prototype.toString = function () {
     var it = this.expectation;

@@ -42,6 +42,17 @@ function load (filename, bindings) {
   module.exports.plugins.push(filename);
 }
 
+var message = {
+    fr: {
+        notwithinit: "Ne doit être utilisé que dans it()",
+        notwithindescribe: "Ne doit être utilisé que dans describe()"
+    },
+    en: {
+        notwithinit: "Not within it()",
+        notwithindescribe: "Not within describe()"
+    }
+};
+
 /*
 * Enrich an object with a number of sources (processed from left to right).
 * Usage   target = enrich(target, source1, source2, ...);
@@ -309,6 +320,11 @@ function defineMatcher(name, fn) {
     };
 }
 
+// not
+defineMatcher('not', function (options) {
+    throw new Failure(this, "not yet implemented");
+});
+
 defineMatcher('toBe', function (expected, options) {
   try {
     enrich(this, options || {});
@@ -327,11 +343,160 @@ defineMatcher('toBe', function (expected, options) {
   return this;
 });
 
+// toEqual
+defineMatcher('toEqual', function (expected, options) {
+    throw new Failure(this, "not yet implemented");
+});
+
+defineMatcher('toBeDefined', function (options) {
+  try {
+    enrich(this, options || {});
+    this.pass = true;
+    if (this.raisedException || typeof this.actual === 'undefined' ) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = new Failure(this, arguments);
+        throw exc;
+      }
+    }
+  } finally {
+    this.matchHook();
+  }
+  return this;
+});
+
+defineMatcher('toBeUndefined', function (options) {
+  try {
+    enrich(this, options || {});
+    this.pass = true;
+    if (this.raisedException || typeof this.actual !== 'undefined' ) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = new Failure(this, arguments);
+        throw exc;
+      }
+    }
+  } finally {
+    this.matchHook();
+  }
+  return this;
+});
+
+defineMatcher('toBeNull', function (options) {
+  try {
+    enrich(this, options || {});
+    this.pass = true;
+    if (this.raisedException || this.actual !== null ) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = new Failure(this, arguments);
+        throw exc;
+      }
+    }
+  } finally {
+    this.matchHook();
+  }
+  return this;
+});
+
+defineMatcher('toBeNaN', function (options) {
+  try {
+    enrich(this, options || {});
+    this.pass = true;
+    if (this.raisedException || this.actual === this.actual ) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = new Failure(this, arguments);
+        throw exc;
+      }
+    }
+  } finally {
+    this.matchHook();
+  }
+  return this;
+});
+
 defineMatcher('toBeTruthy', function (options) {
   try {
     enrich(this, options || {});
     this.pass = true;
     if (this.raisedException || !this.actual) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = new Failure(this, arguments);
+        throw exc;
+      }
+    }
+  } finally {
+    this.matchHook();
+  }
+  return this;
+});
+
+defineMatcher('toBeFalsy', function (options) {
+  try {
+    enrich(this, options || {});
+    this.pass = true;
+    if (this.raisedException || !!this.actual) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = new Failure(this, arguments);
+        throw exc;
+      }
+    }
+  } finally {
+    this.matchHook();
+  }
+  return this;
+});
+
+defineMatcher('toContain', function (expected, options) {
+    throw new Failure(this, "not yet implemented");
+});
+
+defineMatcher('toBeLessThan', function (expected, options) {
+  try {
+    enrich(this, options || {});
+    this.pass = true;
+    if (this.raisedException || this.actual >= expected) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = new Failure(this, arguments);
+        throw exc;
+      }
+    }
+  } finally {
+    this.matchHook();
+  }
+  return this;
+});
+
+defineMatcher('toBeGreaterThan', function (expected, options) {
+  try {
+    enrich(this, options || {});
+    this.pass = true;
+    if (this.raisedException || this.actual <= expected) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        var exc = new Failure(this, arguments);
+        throw exc;
+      }
+    }
+  } finally {
+    this.matchHook();
+  }
+  return this;
+});
+
+defineMatcher('toBeCloseTo', function (expected, precision, options) {
+  try {
+    if (precision !== 0) {
+      precision = precision || 2;
+    }
+    var delta = (Math.pow(10, -precision) / 2);
+    enrich(this, options || {});
+    this.pass = true;
+    if (this.raisedException || Math.abs(this.actual -expected) > delta) {
       this.pass = false;
       if ( this.stopOnFailure ) {
         var exc = new Failure(this, arguments);
@@ -366,7 +531,7 @@ defineMatcher('toBeFunction', function (options) {
   try {
     enrich(this, options || {});
     if ( typeof(this.actual) === 'function' ||
-    this.actual instanceof Function ) {
+         this.actual instanceof Function ) {
       this.pass = true;
     } else {
       this.pass = false;
@@ -459,7 +624,7 @@ Expectation.prototype.done = function () {
 
 // NOTA provide immutable front_* function to be a relay to a mutable one:
 function wrong_it (msg, f) {
-  throw "Not within describe()" + msg + f;
+  throw message[lang || 'en'].notwithindescribe + msg + f;
 }
 var inner_it = wrong_it;
 function front_it () {
@@ -467,7 +632,7 @@ function front_it () {
 }
 
 function wrong_expect (actual) {
-  throw "Not within it()" + actual;
+  throw message[lang || 'en'].notwithinit + actual;
 }
 var inner_expect = wrong_expect;
 function front_expect () {
@@ -475,7 +640,7 @@ function front_expect () {
 }
 
 function wrong_fail () {
-    throw "Not within it()";
+    throw message[lang || 'en'].notwithinit;
 }
 var inner_fail = wrong_fail;
 function front_fail () {
@@ -488,6 +653,7 @@ module.exports = {
   expect:   front_expect,
   fail:     front_fail,
   load:     load,
+  message:  message,
   require:  require,
   // These classes are provided for hooks providers:
   class: {

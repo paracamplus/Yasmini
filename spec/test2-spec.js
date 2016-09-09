@@ -237,6 +237,159 @@ describe("Yasmini library: a light Jasmine framework", function () {
       //console.log(ydesc);
   });
 
+  it("should not offer .not", function () {
+    yasmini.describe("Yasmini: should not offer .not", 
+    function () {
+      var it1 = yasmini.it("check .not", function () {
+         var check1 = yasmini.expect(44).not.toBe(1);
+         expect(check1.pass).toBe(false);
+      });
+      expect(it1.expectations.length).toBe(1);
+      expect(it1.expectationAttempted).toBe(1);
+      expect(it1.expectationSuccessful).toBe(0);
+      expect(it1.expectations[0].pass).toBe(false);
+    });
+  });
+
+  it("should not offer .toEqual", function () {
+    yasmini.describe("Yasmini: should not offer .toEqual", 
+    function () {
+      var it1 = yasmini.it("check .toEqual", function () {
+         var check1 = yasmini.expect(44).toEqual(44);
+         expect(check1.pass).toBe(false);
+      });
+      expect(it1.expectations.length).toBe(1);
+      expect(it1.expectationAttempted).toBe(1);
+      expect(it1.expectationSuccessful).toBe(0);
+      expect(it1.expectations[0].pass).toBe(false);
+    });
+  });
+
+  it("should offer .toBeDefined", function () {
+    yasmini.describe("Yasmini: should offer .toBeDefined", 
+    function () {
+      var it1 = yasmini.it("check .toBeDefined", function () {
+         var check1 = yasmini.expect(44).toBeDefined();
+         expect(check1.pass).toBe(true);
+         var check2 = yasmini.expect(null).toBeDefined();
+         expect(check2.pass).toBe(true);
+      });
+      expect(it1.expectations.length).toBe(2);
+      expect(it1.expectationAttempted).toBe(2);
+      expect(it1.expectationSuccessful).toBe(2);
+      expect(it1.expectations[0].pass).toBe(true);
+      expect(it1.expectations[1].pass).toBe(true);
+    });
+  });
+
+  it("should offer .toBeUndefined", function () {
+    yasmini.describe("Yasmini: should offer .toBeUndefined", 
+    function () {
+      var it1 = yasmini.it("check .toBeUndefined", function () {
+         var check0 = yasmini.expect(undefined).toBeDefined();
+         expect(check0.pass).toBe(false);
+         var check1 = yasmini.expect(undefined).toBeUndefined();
+         expect(check1.pass).toBe(true);
+         var check1 = yasmini.expect(3).toBeUndefined();
+         expect(check1.pass).toBe(false);
+      });
+      expect(it1.expectations.length).toBe(3);
+      expect(it1.expectationAttempted).toBe(3);
+      expect(it1.expectationSuccessful).toBe(1);
+    });
+  });
+
+  it("should offer .toBeNull", function () {
+    yasmini.describe("Yasmini: should offer .toBeNull", 
+    function () {
+      var it1 = yasmini.it("check .toBeNull", function () {
+         var check1 = yasmini.expect(44).toBeNull();
+         expect(check1.pass).toBe(false);
+         var check2 = yasmini.expect(null).toBeNull();
+         expect(check2.pass).toBe(true);
+      });
+      expect(it1.expectations.length).toBe(2);
+      expect(it1.expectationAttempted).toBe(2);
+      expect(it1.expectationSuccessful).toBe(1);
+      expect(it1.expectations[0].pass).toBe(false);
+      expect(it1.expectations[1].pass).toBe(true);
+    });
+  });
+
+  it("should offer .toBeNaN", function () {
+    yasmini.describe("Yasmini: should offer .toBeNaN", 
+    function () {
+      var it1 = yasmini.it("check .toBeNaN", function () {
+         var check0 = yasmini.expect(undefined).toBeNaN();
+         expect(check0.pass).toBe(false);
+         var check1 = yasmini.expect(0/0).toBeNaN();
+         expect(check1.pass).toBe(true);
+         var check2 = yasmini.expect(1/0).toBeNaN();
+         expect(check2.pass).toBe(false);
+      });
+      expect(it1.expectations.length).toBe(3);
+      expect(it1.expectationAttempted).toBe(3);
+      expect(it1.expectationSuccessful).toBe(1);
+      expect(it1.expectations[1].pass).toBe(true);
+    });
+  });
+
+  it("should offer .toBeGreaterThan", function () {
+    yasmini.describe("Yasmini: should offer .toBeGreaterThan", 
+    function () {
+      var it1 = yasmini.it("check .toBeGreaterThan", function () {
+         var check0 = yasmini.expect(3).toBeGreaterThan(4);
+         expect(check0.pass).toBe(false);
+         var check1 = yasmini.expect(3).toBeGreaterThan(2);
+         expect(check1.pass).toBe(true);
+         var check2 = yasmini.expect(3).toBeGreaterThan(3);
+         expect(check2.pass).toBe(false);
+      });
+      expect(it1.expectations.length).toBe(3);
+      expect(it1.expectationAttempted).toBe(3);
+      expect(it1.expectationSuccessful).toBe(1);
+      expect(it1.expectations[1].pass).toBe(true);
+    });
+  });
+
+  it("should offer .toBeLessThan", function () {
+    yasmini.describe("Yasmini: should offer .toBeLessThan", 
+    function () {
+      var it1 = yasmini.it("check .toBeLessThan", function () {
+         var check0 = yasmini.expect(3).toBeLessThan(4);
+         expect(check0.pass).toBe(true);
+         var check1 = yasmini.expect(3).toBeLessThan(2);
+         expect(check1.pass).toBe(false);
+         var check2 = yasmini.expect(3).toBeLessThan(3);
+         expect(check2.pass).toBe(false);
+      });
+      expect(it1.expectations.length).toBe(3);
+      expect(it1.expectationAttempted).toBe(3);
+      expect(it1.expectationSuccessful).toBe(1);
+      expect(it1.expectations[0].pass).toBe(true);
+    });
+  });
+
+  it("should offer .toBeCloseTo", function () {
+    yasmini.describe("Yasmini: should offer .toBeCloseTo", 
+    function () {
+      var it1 = yasmini.it("check .toBeCloseTo", function () {
+         var check0 = yasmini.expect(3).toBeCloseTo(3.4,1);
+         expect(check0.pass).toBe(false);
+         var check1 = yasmini.expect(3).toBeCloseTo(3.04,1);
+         expect(check1.pass).toBe(true);
+         var check2 = yasmini.expect(3).toBeCloseTo(3.04,2);
+         expect(check2.pass).toBe(false);
+         var check3 = yasmini.expect(3.03).toBeCloseTo(3.037,1);
+         expect(check3.pass).toBe(true);
+      });
+      expect(it1.expectations.length).toBe(4);
+      expect(it1.expectationAttempted).toBe(4);
+      expect(it1.expectationSuccessful).toBe(2);
+      expect(it1.expectations[1].pass).toBe(true);
+    });
+  });
+
   it("should offer expect.invoke", function () {
     yasmini.describe("Yasmini: should offer expect.invoke",
     function () {

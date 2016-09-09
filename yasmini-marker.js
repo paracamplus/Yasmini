@@ -123,7 +123,8 @@ var evalStudentTests_ = function (config, specfile) {
     verbalize("+ ", "Je vais maintenant vérifier votre code avec mes tests.");
     var src = fs.readFileSync(specfile);
     // NOTA: this pollutes the current environment with student's functions:
-    var current = vm.runInThisContext("this");
+    //var current = vm.runInThisContext("this");
+    var current = yasmini.global;
     enrich(current, config.module, {
         yasmini:   yasmini,
         describe:  yasmini.describe,
@@ -161,11 +162,12 @@ var evalStudentCode_ = function (config, codefile) {
     config.module = vm.createContext({
        // allow student's code to require some Node modules:
        require: yasmini.imports.module.require,
+       yasmini: yasmini,
        console: yasmini.imports.console,
        describe: _describe,
        it:       yasmini.it,
        expect:   yasmini.expect,
-       fail:     yasmini.fail
+       fail:     yasmini.fail       
     });
     // Evaluate that file:
     try {
