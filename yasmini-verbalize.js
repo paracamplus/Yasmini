@@ -1,7 +1,7 @@
-// An example of French verbalization for Yasmini
+// An example of French or English verbalization for Yasmini
 
 /*
-Copyright (C) 2015 Christian.Queinnec@CodeGradX.org
+Copyright (C) 2016 Christian.Queinnec@CodeGradX.org
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -25,13 +25,61 @@ bubbles up and finishes in Description.verbalization.
 
 */
 
+yasmini.message = {
+    fr: {
+        startEval: function (code) {
+            return "Je vais évaluer " + code;
+        },
+        fail: function (index, actual) {
+            return "Échec du test #" + index +
+                " Je n'attendais pas votre résultat: " + actual;
+        },
+        fullSuccess: function (expectationSuccessful, expectationAttempted) {
+            return "Vous avez réussi " + expectationSuccessful +
+                " de mes " + expectationAttempted + " tests.";
+        },
+        partialSuccess: function (expectationSuccessful, expectationAttempted) {
+            return "Vous n'avez réussi que " + expectationSuccessful +
+                " de mes " + expectationAttempted + " tests.";
+        }
+    },
+    en: {
+        startEval: function (code) {
+            return "I am going to eval " + code;
+        },
+        fail: function (index, actual) {
+            return "Failed test #" + index +
+                " I was not expecting your result: " + actual;
+        },
+        fullSuccess: function (expectationSuccessful, expectationAttempted) {
+            return "You pass " + expectationSuccessful + " of my " +
+                expectationAttempted + " tests.";
+        },
+        partialSuccess: function (expectationSuccessful, expectationAttempted) {
+            return "You only pass " + expectationSuccessful +
+                " of my " + expectationAttempted + " tests.";
+        }
+    }
+};
+
+yasmini.messagefn = function (key) {
+    var translator = yasmini.message[yasmini.lang || 'fr'];
+    if ( translator ) {
+        var fn = translator[key];
+        var args = Array.prototype.slice.call(arguments, 1);
+        return fn.apply(null, args);
+    } else {
+        return JSON.stringify(arguments);
+    }
+};
+
 yasmini.class.Expectation.prototype.beginHook = function () {
-  var msg = "run beginHook on test #" + this.index;
+  var msg = "run beginHook on expectation #" + this.index;
   this.specification.description.verbalization.push(msg);
   this.alreadyShownTest = false;
 };
 yasmini.class.Expectation.prototype.matchHook = function () {
-  var msg = "run matchHook on test #" + this.index;
+  var msg = "run matchHook on expectation #" + this.index;
   this.specification.description.verbalization.push(msg);
   msg = '';
   if ( ! this.alreadyShownTest ) {
@@ -40,7 +88,7 @@ yasmini.class.Expectation.prototype.matchHook = function () {
       msg = 'Test #' + this.index + ' ';
     }
     if ( this.code ) {
-      msg = (msg || '') + "Je vais évaluer " + this.code;
+      msg = (msg || '') + yasmini.messagefn('startEval', this.code);
     }
     if (msg) {
       this.specification.description.verbalization.push(msg);
@@ -48,12 +96,10 @@ yasmini.class.Expectation.prototype.matchHook = function () {
   }
 };
 yasmini.class.Expectation.prototype.endHook = function () {
-  var msg = "run endHook on test #" + this.index;
+  var msg = "run endHook on expectation #" + this.index;
   this.specification.description.verbalization.push(msg);
   if (! this.pass) {
-    msg = "Échec du test #" + this.index +
-      " Je n'attendais pas votre résultat: " +
-      this.actual;
+    msg = yasmini.messagefn('fail', this.index, this.actual);
     this.specification.description.verbalization.push(msg);
   }
 };
@@ -66,19 +112,15 @@ yasmini.class.Specification.prototype.endHook = function () {
   var msg = "run endHook on specification #" + this.message;
   this.description.verbalization.push(msg);
   if (this.pass) {
-    msg = "Vous avez réussi " +
-    this.expectationSuccessful +
-    " de mes " +
-    this.expectationAttempted +
-    " tests.";
+    msg = yasmini.messagefn('fullSuccess', 
+                            this.expectationSuccessful,
+                            this.expectationAttempted);
   } else {
-    msg = "Vous n'avez réussi que " +
-    this.expectationSuccessful +
-    " de mes " +
-    (this.expectationIntended ?
-      this.expectationIntended :
-      this.expectationAttempted ) +
-      " tests.";
+    msg = yasmini.messagefn('partialSuccess', 
+                            this.expectationSuccessful,
+                            (this.expectationIntended ?
+                             this.expectationIntended :
+                             this.expectationAttempted ));
     }
     this.description.verbalization.push(msg);
   };

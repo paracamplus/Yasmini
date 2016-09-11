@@ -470,6 +470,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
     }
     expect(result).toBeUndefined();
     expect(exception).toBeTruthy();
+    expect(exception).toBe(66);
   });
 
   it("should offer expect.eval with exceptions", function () {
@@ -481,6 +482,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
         expect(check1.code).toBe(code);
         expect(check1.actual).toBeUndefined();
         expect(check1.raisedException).toBe(true);
+        expect(check1.exception).toBe(67);
       });
       expect(it1.expectationAttempted).toBe(1);
       expect(it1.expectationSuccessful).toBe(0);

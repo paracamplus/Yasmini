@@ -4,6 +4,7 @@
 
 var yasmini = require('../yasmini.js');
 yasmini.load('yasmini-verbalize.js');
+yasmini.lang = 'fr';
 
 // **************************************** Tests ******************
 
@@ -27,12 +28,12 @@ describe("Verbalization", function () {
       var c1 = yasmini.it("multiplications", function () {
         yasmini.expect(1*1, {
           code: "1*1"
-        }).toBe(1);
-        yasmini.expect("2*21").eval().toBe(44);
+        }).toBe(1);                             // ok
+        yasmini.expect("2*21").eval().toBe(44); // failure expected
         yasmini.expect("2*22", {
           stopOnFailure: true
-        }).eval().toBe(33);
-        yasmini.expect("2*23").eval().toBe(22);
+        }).eval().toBe(33);                     // failure expected
+        yasmini.expect("2*23").eval().toBe(22); // not executed
       });
       expect(c1.expectationSuccessful).toBe(1);
       expect(c1.expectationAttempted).toBe(3);
