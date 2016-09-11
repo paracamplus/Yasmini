@@ -1,6 +1,7 @@
 work : tests update pack install publish
 clean :
 	-rm npm-debug.log
+	-rm -rf tmp
 
 # ############## Working rules:
 
@@ -14,10 +15,6 @@ test.with.yasmini :
 	node spec/ytests.js
 	node spec/ytestfact.js
 
-pack : clean
-	-rm -f ../yasmini.tgz
-	tar czf ../yasmini.tgz .
-
 # ############## NPM package
 
 publish : clean 
@@ -25,23 +22,22 @@ publish : clean
 	-git commit -m "NPM publication `date`" .
 	git push
 	-rm -f yasmini.tgz
-	m yasmini.tgz install
-	cd tmp/yasmini/ && npm version patch && npm publish
-	cp -pf tmp/yasmini/package.json .
+	m Yasmini.tgz install
+	cd tmp/Yasmini/ && npm version patch && npm publish
+	cp -pf tmp/Yasmini/package.json .
 	rm -rf tmp
 
-yasmini.tgz : clean
-	-rm -rf tmp
+Yasmini.tgz : clean
 	mkdir -p tmp
 	cd tmp/ && git clone https://github.com/paracamplus/Yasmini.git
-	rm -rf tmp/yasmini/.git
-	cp -p package.json tmp/yasmini/ 
-	tar czf yasmini.tgz -C tmp yasmini
-	tar tzf yasmini.tgz
+	rm -rf tmp/Yasmini/.git
+	cp -p package.json tmp/Yasmini/ 
+	tar czf Yasmini.tgz -C tmp Yasmini
+	tar tzf Yasmini.tgz
 
 REMOTE	=	www.paracamplus.com
 install : 
-	rsync -avu ../yasmini.tgz \
+	rsync -avu Yasmini.tgz \
 	    ${REMOTE}:/var/www/www.paracamplus.com/Resources/Javascript/
 
 update :
