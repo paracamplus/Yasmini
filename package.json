@@ -1,6 +1,6 @@
 {
   "name": "yasmini",
-  "version": "0.1.19",
+  "version": "0.1.20",
   "engines": {
     "node": ">= 0.12.7"
   },
@@ -27,7 +27,9 @@
     "Makefile",
     "package.json",
     "README.md",
-    "yasmini*.js",
+    "yasmini.js",
+    "example/*.js",
+    "codegradx/*.js",
     "spec/*.js"
   ],
   "main": "yasmini.js",
