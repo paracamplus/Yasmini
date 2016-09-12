@@ -294,7 +294,7 @@ Feel free to write your own adjunctions and share them!
 The `spec/ytests.js` is a test file written for Yasmini. It cannot
 be processed by Jasmine.
 
-The `yasmini-verbose-verbalize.js` file is a simple verbalizer that
+The `example/verbalize` module is a simple verbalizer that
 displays description messages, specification messages followed by
 dots for successful expectations. Something like:
 
@@ -304,9 +304,9 @@ dots for successful expectations. Something like:
  (another it ...!Failure!
  ```
 
-The `yasmini-verbalize.js` file traces every description, specification
+The `example/verbalize` module traces every description, specification
 and expectation and accumulates these traces in the `verbalization` property
 of Description instances. It is up to you to display them.
 
-The `yasmini-codegradx-verbalize` is a more elaborate verbalizer to
+The `codegradx/verbalizer` is a more elaborate verbalizer to
 be used with the CodeGradX infrastructure.

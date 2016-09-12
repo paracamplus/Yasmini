@@ -60,6 +60,9 @@ yasmini.message = {
             return "Votre code n'est pas entièrement satisfaisant: " +
                 exc.toString();
         },
+        bravo: function () {
+            return '';
+        },
         fail: function (index, actual) {
             return "Échec du test #" + index +
                 " Je n'attendais pas votre résultat: " + actual;
@@ -76,13 +79,13 @@ yasmini.message = {
             return "Vous n'avez réussi que " + expectationSuccessful +
                 " de mes " + expectationAttempted + " tests.";
         },
-        checkFunction: function (msg) {
+        checkFunction: function (message) {
             return "Je vais tester la fonction " + message;
         }
     },
     en: {
         startEval: function (code) {
-            return "I am going to eval " + code;
+            return "I am going to evaluate " + code;
         },
         startEvaluation: function () {
             return "Let's start to evaluate your code.";
@@ -106,6 +109,9 @@ yasmini.message = {
             return "Your code is not correct, it raises: " +
                 exc.toString();
         },
+        bravo: function () {
+            return '';
+        },
         fail: function (index, actual) {
             return "Failed test #" + index +
                 " I was not expecting your result: " + actual;
@@ -122,7 +128,7 @@ yasmini.message = {
             return "You only pass " + expectationSuccessful +
                 " of my " + expectationAttempted + " tests.";
         },
-        checkFunction: function (msg) {
+        checkFunction: function (message) {
             return "I'm going to check function " + message;
         }
     }
@@ -172,7 +178,7 @@ yasmini.verbalize = function () {
       result += s;
     }
     yasmini.config.journal.push(result);
-    printPartialResults_();
+    yasmini.printPartialResults_();
 };
 
 /** 
@@ -211,25 +217,18 @@ yasmini.markFile = function (config, codefile, specfile) {
     yasmini.config = config;
 
     // Check student's code with its own tests (if any):
-    yasmini.load('yasmini-verbose-verbalizer.js');
+    require('yasmini/codegradx/verbalizer');
     yasmini.outputter = function (msg) {
         yasmini.process.stdout.write(msg);
     };
     if ( evalStudentCode_(config, codefile) ) {
-        verbalize("+ ", yasmini.messagefn('finishEval'));
+        yasmini.verbalize("+ ", yasmini.messagefn('finishEval'));
     } else {
-        verbalize("- ", yasmini.messagefn('stopEval'));
+        yasmini.verbalize("- ", yasmini.messagefn('stopEval'));
         return;
     }
-
-    yasmini.load('yasmini-codegradx-verbalize.js', {
-        verbalize: verbalize,
-        printPartialResults_: printPartialResults_
-    });
-    if ( evalStudentTests_(config, specfile) ) {
-        
-    } else {
-        verbalize("- ", yasmini.messagefn('stopEval'));
+    if ( ! evalStudentTests_(config, specfile) ) {
+        yasmini.verbalize("- ", yasmini.messagefn('stopEval'));
         return;
     }
 };
@@ -238,7 +237,7 @@ yasmini.markFile = function (config, codefile, specfile) {
  */
 
 var evalStudentTests_ = function (config, specfile) {
-    verbalize("+ ", yasmini.messagefn('startTests'));
+    yasmini.verbalize("+ ", yasmini.messagefn('startTests'));
     var src = fs.readFileSync(specfile);
     // NOTA: this pollutes the current environment with student's functions:
     //var current = vm.runInThisContext("this");
@@ -262,7 +261,7 @@ var evalStudentTests_ = function (config, specfile) {
 
 var evalStudentCode_ = function (config, codefile) {
     var msg;
-    verbalize("+ ", yasmini.messagefn('startEvaluation'));
+    yasmini.verbalize("+ ", yasmini.messagefn('startEvaluation'));
     // accumulate student's describe() invocations:
     config.student = {
         tests: []
@@ -291,8 +290,8 @@ var evalStudentCode_ = function (config, codefile) {
     try {
         vm.runInContext(src, config.module, { filename: codefile });
         // sometimes there is no output, maybe adapt this message:
-        //verbalize("+ Voici ce que j'obtiens:");
-        //verbalize("# " + config.resultDir + '/s.out');
+        //yasmini.verbalize("+ Voici ce que j'obtiens:");
+        //yasmini.verbalize("# " + config.resultDir + '/s.out');
 
         // Check that student's code is coherent wrt its own tests:
         var coherent = true;
@@ -300,7 +299,7 @@ var evalStudentCode_ = function (config, codefile) {
             coherent = coherent && d.description.pass;
         });
         if ( config.student.tests.length > 0 && ! coherent ) {
-            verbalize("-- ", yasmini.messagefn('failOwnTests'));
+            yasmini.verbalize("-- ", yasmini.messagefn('failOwnTests'));
             return false;
         }
 
@@ -310,7 +309,7 @@ var evalStudentCode_ = function (config, codefile) {
             //printerr(f);
             if ( ! ( typeof(f) === 'function' ||
                  f instanceof Function ) ) {
-                verbalize("- ", yasmini.messagefn('notAFunction', fname));
+                yasmini.verbalize("- ", yasmini.messagefn('notAFunction', fname));
                 return false;
             }
         }
@@ -318,7 +317,7 @@ var evalStudentCode_ = function (config, codefile) {
       // Bad syntax or incorrect compilation throw an Error
       var msg = yasmini.messagefn('notSatisfying', exc);
       msg = msg.replace(/\n/gm, "\n#");
-      verbalize("-- ", msg);
+      yasmini.verbalize("-- ", msg);
       return false;
     }
     return true;

@@ -29,6 +29,7 @@ var path = require('path');
 var vm = require('vm');
 var yasmini = require('yasmini/codegradx/marker');
 module.exports = yasmini;
+require('yasmini/codegradx/marker');
 
 yasmini.class.Expectation.prototype.beginHook = function () {
     // exitCode is initially undefined. We initialize it with 0 as soon
@@ -66,9 +67,11 @@ yasmini.class.Expectation.prototype.matchHook = function () {
 };
 
 yasmini.class.Expectation.prototype.endHook = function () {
+    var msg;
     if ( ! this.runEndHook ) {
         if (this.pass) {
-            //yasmini.verbalize('+ Bravo');
+            msg = yasmini.messagefn('bravo');
+            yasmini.verbalize('+ ', msg);
         } else {
             if ( this.raisedException ) {
                 msg = yasmini.messagefn(
@@ -113,8 +116,8 @@ yasmini.class.Specification.prototype.endHook = function () {
 
 yasmini.class.Description.prototype.beginHook = function () {
     yasmini.config.descriptions.push(this);
-    var msg = "+ " + yasmini.messagefn('checkFunction', this.message);
-    yasmini.verbalize(msg);
+    var msg = yasmini.messagefn('checkFunction', this.message);
+    yasmini.verbalize("+ ", msg);
     this.update_();
     yasmini.printPartialResults_();
 };
