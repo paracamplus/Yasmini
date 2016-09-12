@@ -2,8 +2,10 @@
 // Usage: jasmine spec/verbalize2-spec.js
 // jshint jasmine: true
 
-var yasmini = require('../yasmini.js');
-yasmini.load('yasmini-verbalize.js');
+//var yasmini = require('../yasmini.js');
+//yasmini.load('yasmini-verbalize.js');
+var yasmini = require('yasmini');
+require('yasmini/example/verbalizer');
 yasmini.lang = 'fr';
 
 // **************************************** Tests ******************

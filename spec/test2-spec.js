@@ -2,7 +2,7 @@
 // Usage: jasmine spec/test2-spec.js
 // jshint jasmine: true
 
-var yasmini = require('../yasmini.js');
+var yasmini = require('yasmini');
 var vm = require('vm');
 
 describe("Yasmini library: a light Jasmine framework", function () {

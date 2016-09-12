@@ -1,10 +1,18 @@
 // Tests using Yasmini without Jasmine
 
-var yasmini = require('../yasmini.js');
+var yasmini = require('yasmini');
+//yasmini.load('./codegradx/verbalizer.js');
+require('yasmini/codegradx/verbalizer');
 var describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect;
-yasmini.load('yasmini-verbose-verbalizer.js');
+
+// Fake a config object:
+yasmini.config = {
+    descriptions: [],
+    journal: [],
+    resultFile: "/dev/null"
+};
 
 describe("factorial", function () {
     function fact (n) {

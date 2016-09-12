@@ -1,11 +1,12 @@
 // Tests using Yasmini without Jasmine
 
-var yasmini = require('../yasmini.js');
+var yasmini = require('yasmini');
+//yasmini.load('yasmini-verbalize.js');
+require('yasmini/example/verbalizer');
 var describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect,
     fail     = yasmini.fail;
-yasmini.load('yasmini-verbalize.js');
 
 var d1 = describe("some program", function () {
   var e1, e3;

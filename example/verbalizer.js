@@ -25,6 +25,9 @@ bubbles up and finishes in Description.verbalization.
 
 */
 
+var yasmini = require('yasmini');
+module.exports = yasmini;
+
 yasmini.message = {
     fr: {
         startEval: function (code) {
