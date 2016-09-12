@@ -83,7 +83,13 @@ var yasmini = require('yasmini');
 var describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect;
-yasmini.load('yasmini-verbalize.js', {myfunction: myfunction});
+yasmini.load('..../yasmini/example/verbalizer.js', {myfunction: myfunction});
+```
+
+Alternatively to `load`, you may also `require` these additional modules:
+
+```javascript
+require('yasmini/example/verbalizer');
 ```
 
 Yasmini also exports some classes so you may write your own hooks.
