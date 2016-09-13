@@ -36,7 +36,7 @@ module.exports = yasmini;
 yasmini.message = {
     fr: {
         startEval: function (code) {
-            return "Je vais évaluer " + code;
+            return "J'évalue " + code;
         },
         startEvaluation: function () {
             return "Je vais évaluer votre code.";
@@ -85,7 +85,7 @@ yasmini.message = {
     },
     en: {
         startEval: function (code) {
-            return "I am going to evaluate " + code;
+            return "Evaluating " + code;
         },
         startEvaluation: function () {
             return "Let's start to evaluate your code.";
