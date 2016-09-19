@@ -22,7 +22,7 @@ var vm = require('vm');
 var path = require('path');
 var fs = require('fs');
 var util = require('util');
-var isEqual = require('lodash.isequal');
+var _ = require('lodash');
 
 /*
 * Load utility. The utility file should be stored aside yasmini.js
@@ -348,7 +348,7 @@ defineMatcher('toEqual', function (expected, options) {
     try {
         enrich(this, options || {});
         this.pass = true;
-        if ( ! isEqual(expected, this.actual) ) {
+        if ( ! _.isEqual(expected, this.actual) ) {
             this.pass = false;
             if ( this.stopOnFailure ) {
                 var exc = this.raisedException ?
