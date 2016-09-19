@@ -169,13 +169,17 @@ var enrich = function (target) {
 };
 
 /**
- * verbalize some facts.
- * @param Configuration config
+ * verbalize some facts. The first argument qualifies the verbalization.
+ * -- means error
+ * -  is for warning
+ * +  is for positive information, feedback
+
+ * @param string        kind of message
  * @param Any...        message fragments
  */
-yasmini.verbalize = function () {
-    var result = '';
-    for (var i=0 ; i<arguments.length ; i++) {
+yasmini.verbalize = function (kind) {
+    var result = kind + ' ';
+    for (var i=1 ; i<arguments.length ; i++) {
       var s = yasmini.imports.util.inspect(arguments[i]);
       result += s;
     }
@@ -224,13 +228,13 @@ yasmini.markFile = function (config, codefile, specfile) {
         yasmini.process.stdout.write(msg);
     };
     if ( evalStudentCode_(config, codefile) ) {
-        yasmini.verbalize("+ ", yasmini.messagefn('finishEval'));
+        yasmini.verbalize("+", yasmini.messagefn('finishEval'));
     } else {
-        yasmini.verbalize("- ", yasmini.messagefn('stopEval'));
+        yasmini.verbalize("-", yasmini.messagefn('stopEval'));
         return;
     }
     if ( ! evalStudentTests_(config, specfile) ) {
-        yasmini.verbalize("- ", yasmini.messagefn('stopEval'));
+        yasmini.verbalize("-", yasmini.messagefn('stopEval'));
         return;
     }
 };
@@ -239,7 +243,7 @@ yasmini.markFile = function (config, codefile, specfile) {
  */
 
 var evalStudentTests_ = function (config, specfile) {
-    yasmini.verbalize("+ ", yasmini.messagefn('startTests'));
+    yasmini.verbalize("+", yasmini.messagefn('startTests'));
     var src = fs.readFileSync(specfile);
     // NOTA: this pollutes the current environment with student's functions:
     //var current = vm.runInThisContext("this");
@@ -263,7 +267,7 @@ var evalStudentTests_ = function (config, specfile) {
 
 var evalStudentCode_ = function (config, codefile) {
     var msg;
-    yasmini.verbalize("+ ", yasmini.messagefn('startEvaluation'));
+    yasmini.verbalize("+", yasmini.messagefn('startEvaluation'));
     // accumulate student's describe() invocations:
     config.student = {
         tests: []
@@ -292,7 +296,7 @@ var evalStudentCode_ = function (config, codefile) {
     try {
         vm.runInContext(src, config.module, { filename: codefile });
         // sometimes there is no output, maybe adapt this message:
-        //yasmini.verbalize("+ Voici ce que j'obtiens:");
+        //yasmini.verbalize("+", "Voici ce que j'obtiens:");
         //yasmini.verbalize("# " + config.resultDir + '/s.out');
 
         // Check that student's code is coherent wrt its own tests:
@@ -301,7 +305,7 @@ var evalStudentCode_ = function (config, codefile) {
             coherent = coherent && d.description.pass;
         });
         if ( config.student.tests.length > 0 && ! coherent ) {
-            yasmini.verbalize("-- ", yasmini.messagefn('failOwnTests'));
+            yasmini.verbalize("--", yasmini.messagefn('failOwnTests'));
             return false;
         }
 
@@ -311,7 +315,7 @@ var evalStudentCode_ = function (config, codefile) {
             //printerr(f);
             if ( ! ( typeof(f) === 'function' ||
                  f instanceof Function ) ) {
-                yasmini.verbalize("- ", yasmini.messagefn('notAFunction', fname));
+                yasmini.verbalize("-", yasmini.messagefn('notAFunction', fname));
                 return false;
             }
         }
@@ -319,7 +323,7 @@ var evalStudentCode_ = function (config, codefile) {
       // Bad syntax or incorrect compilation throw an Error
       var msg = yasmini.messagefn('notSatisfying', exc);
       msg = msg.replace(/\n/gm, "\n#");
-      yasmini.verbalize("-- ", msg);
+      yasmini.verbalize("--", msg);
       return false;
     }
     return true;

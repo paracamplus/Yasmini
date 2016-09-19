@@ -251,9 +251,8 @@ The `toBeA(classname)` checks whether `actual` is an instance of `classname`.
 The `toMatch(regexp)` matcher converts `actual` to a string and checks
 whether the regexp acccepts it.
 
-The `toThrow` matcher considers `actual` to be a thunk (a function without
-argument) to invoke; it then checks that the function throws something.
-This matcher invokes the `invoke` matcher if not yet done.
+The `toThrow` matcher checks whether an exception was previously raised
+by the expectation. It is often used after `invoke`.
 
 The `invoke` matcher considers `actual` to be a function to invoke
 (possibly with some arguments); `actual` is reset to the obtained
@@ -261,7 +260,8 @@ value.
 
 The `eval` matcher considers `actual` to be a string which must be `eval`-ed.
 The resulting value will replace `actual` so you may chain this matcher
-with other matchers.
+with other matchers. It is possible to use `toThrow` after `eval` to check
+whether an exception occurred.
 
 All matchers run the `matchHook` hook and return the input
 `Expectation` so they may be chained. Note however that expectations

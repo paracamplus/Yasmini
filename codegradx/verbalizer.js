@@ -58,7 +58,7 @@ yasmini.class.Expectation.prototype.matchHook = function () {
             msg = (msg || '') + yasmini.messagefn('startEval', this.code);
         }
         if (msg) {
-            yasmini.verbalize('+ ', msg);
+            yasmini.verbalize('+', msg);
         }
         this.alreadyShownTest = true;
     }
@@ -71,7 +71,7 @@ yasmini.class.Expectation.prototype.endHook = function () {
     if ( ! this.runEndHook ) {
         if (this.pass) {
             msg = yasmini.messagefn('bravo');
-            yasmini.verbalize('+ ', msg);
+            yasmini.verbalize('+', msg);
         } else {
             if ( this.raisedException ) {
                 msg = yasmini.messagefn(
@@ -79,7 +79,7 @@ yasmini.class.Expectation.prototype.endHook = function () {
             } else {
                 msg = yasmini.messagefn('fail', this.index, this.actual);
             }
-            yasmini.verbalize('- ', msg);
+            yasmini.verbalize('-', msg);
         }
         this.runEndHook = true;
     }
@@ -89,7 +89,7 @@ yasmini.class.Expectation.prototype.endHook = function () {
 
 yasmini.class.Specification.prototype.beginHook = function () {
     var msg = this.message;
-    yasmini.verbalize('+ ', msg);
+    yasmini.verbalize('+', msg);
     this.update_();
     yasmini.printPartialResults_();
 };
@@ -117,7 +117,7 @@ yasmini.class.Specification.prototype.endHook = function () {
 yasmini.class.Description.prototype.beginHook = function () {
     yasmini.config.descriptions.push(this);
     var msg = yasmini.messagefn('checkFunction', this.message);
-    yasmini.verbalize("+ ", msg);
+    yasmini.verbalize("+", msg);
     this.update_();
     yasmini.printPartialResults_();
 };

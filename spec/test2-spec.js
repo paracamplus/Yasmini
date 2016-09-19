@@ -237,6 +237,15 @@ describe("Yasmini library: a light Jasmine framework", function () {
       //console.log(ydesc);
   });
 
+  it("should offer .toThrow", function () {
+      yasmini.describe("Yasmini: should offer .toThrow", function () {
+          var it1 = yasmini.it("check .not", function () {
+              var check1 = yasmini.expect("4%a").eval().toThrow();
+              expect(check1.pass).toBe(true);
+          });
+      });
+  });
+
   it("should not offer .not", function () {
     yasmini.describe("Yasmini: should not offer .not", 
     function () {
@@ -438,24 +447,20 @@ describe("Yasmini library: a light Jasmine framework", function () {
       var it1 = yasmini.it("should run it", function () {
         var check1 = yasmini.expect(function () {
           throw 45;
-        }).toThrow();  // implicit try()
+        }).invoke().toThrow();  // implicit try()
         expect(check1.raisedException).toBe(true);
         expect(check1.exception).toBe(45);
-        var check2 = yasmini.expect(function () {
-          throw 46;
-        }).invoke().toThrow(); // explicit try()
-        expect(check2.raisedException).toBe(true);
         // 47() throws an exception
-        var check3 = yasmini.expect(47).toThrow();
+        var check3 = yasmini.expect(47).invoke().toThrow();
         expect(check3.pass).toBe(true);
         var check4 = yasmini.expect(function () {
           return 47; // don't throw
         }).toThrow();
         expect(check4.pass).toBe(false);
       });
-      expect(it1.expectations.length).toBe(4);
-      expect(it1.expectationAttempted).toBe(4);
-      expect(it1.expectationSuccessful).toBe(3);
+      expect(it1.expectations.length).toBe(3);
+      expect(it1.expectationAttempted).toBe(3);
+      expect(it1.expectationSuccessful).toBe(2);
       expect(it1.expectations[0].pass).toBe(true);
       expect(it1.expectations[1].pass).toBe(true);
     });

@@ -592,10 +592,6 @@ defineMatcher('invoke', function () {
 });
 
 defineMatcher('toThrow', function () {
-  if ( ! this.thunk ) {
-    // Force invoke() if not yet done!
-    this.invoke.apply(this, arguments);
-  }
   try {
     if (this.raisedException) {
       this.pass = true;
