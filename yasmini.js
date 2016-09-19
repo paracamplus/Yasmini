@@ -22,6 +22,7 @@ var vm = require('vm');
 var path = require('path');
 var fs = require('fs');
 var util = require('util');
+var isEqual = require('lodash.isequal');
 
 /*
 * Load utility. The utility file should be stored aside yasmini.js
@@ -343,9 +344,22 @@ defineMatcher('toBe', function (expected, options) {
   return this;
 });
 
-// toEqual
 defineMatcher('toEqual', function (expected, options) {
-    throw new Failure(this, "not yet implemented");
+    try {
+        enrich(this, options || {});
+        this.pass = true;
+        if ( ! isEqual(expected, this.actual) ) {
+            this.pass = false;
+            if ( this.stopOnFailure ) {
+                var exc = this.raisedException ?
+                    this.exception : new Failure(this, arguments);
+                throw exc;
+            }
+        }
+    } finally {
+        this.matchHook();
+    }
+    return this;
 });
 
 defineMatcher('toBeDefined', function (options) {

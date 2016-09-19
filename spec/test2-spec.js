@@ -251,20 +251,6 @@ describe("Yasmini library: a light Jasmine framework", function () {
     });
   });
 
-  it("should not offer .toEqual", function () {
-    yasmini.describe("Yasmini: should not offer .toEqual", 
-    function () {
-      var it1 = yasmini.it("check .toEqual", function () {
-         var check1 = yasmini.expect(44).toEqual(44);
-         expect(check1.pass).toBe(false);
-      });
-      expect(it1.expectations.length).toBe(1);
-      expect(it1.expectationAttempted).toBe(1);
-      expect(it1.expectationSuccessful).toBe(0);
-      expect(it1.expectations[0].pass).toBe(false);
-    });
-  });
-
   it("should offer .toBeDefined", function () {
     yasmini.describe("Yasmini: should offer .toBeDefined", 
     function () {
@@ -388,6 +374,32 @@ describe("Yasmini library: a light Jasmine framework", function () {
       expect(it1.expectationSuccessful).toBe(2);
       expect(it1.expectations[1].pass).toBe(true);
     });
+  });
+
+  it("should offer .toEqual", function () {
+      yasmini.describe("Yasmini: should offer .toEqual",
+      function () {
+          var it1 = yasmini.it("check .toEqual", function () {
+              var check0 = yasmini.expect(3).toEqual(3);
+              expect(check0.pass).toBeTruthy();
+              check0 = yasmini.expect(undefined).toEqual(undefined);
+              expect(check0.pass).toBeTruthy();
+              check0 = yasmini.expect({a: 1}).toEqual({a: 1});
+              expect(check0.pass).toBeTruthy();
+              check0 = yasmini.expect([1, 2, 3]).toEqual([1, 2, 3]);
+              expect(check0.pass).toBeTruthy();
+              check0 = yasmini.expect(expect).toEqual(expect);
+              expect(check0.pass).toBeTruthy();
+              check0 = yasmini.expect([{a: 2}]).toEqual([{a: 2}]);
+              expect(check0.pass).toBeTruthy();
+              check0 = yasmini.expect(null).toEqual(null);
+              expect(check0.pass).toBeTruthy();
+          });
+          expect(it1.expectations.length).toBe(7);
+          expect(it1.expectationAttempted).toBe(7);
+          expect(it1.expectationSuccessful).toBe(7);
+          expect(it1.expectations[1].pass).toBe(true);
+      });
   });
 
   it("should offer expect.invoke", function () {
