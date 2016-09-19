@@ -41,7 +41,6 @@
     "test": "make tests"
   },
   "dependencies": {
-    // Node modules: util, fs, path, vm
     "lodash": "^4.15"
   },
   "devDependencies": {
