@@ -177,7 +177,6 @@ yasmini.verbalize = function () {
     var result = '';
     for (var i=0 ; i<arguments.length ; i++) {
       var s = yasmini.imports.util.inspect(arguments[i]);
-      s = s.slice(1,-1).replace("\\'", "'"); // remove surrounding quotes!
       result += s;
     }
     yasmini.config.journal.push(result);
