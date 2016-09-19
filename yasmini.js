@@ -348,7 +348,7 @@ defineMatcher('toEqual', function (expected, options) {
     try {
         enrich(this, options || {});
         this.pass = true;
-        if ( ! _.isEqual(expected, this.actual) ) {
+        if ( ! _.isEqual(this.actual, expected) ) {
             this.pass = false;
             if ( this.stopOnFailure ) {
                 var exc = this.raisedException ?
@@ -685,6 +685,7 @@ module.exports = {
       fs:   fs,
       vm:   vm,
       util: util,
+      _:    _,
       console: console
   }
 };

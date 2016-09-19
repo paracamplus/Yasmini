@@ -29,6 +29,7 @@ var fs = require('fs');
 var path = require('path');
 var vm = require('vm');
 var yasmini = require('yasmini');
+var util = require('util');
 module.exports = yasmini;
 
 // Messages in two languages (fr and en):
@@ -65,7 +66,8 @@ yasmini.message = {
         },
         fail: function (index, actual) {
             return "Échec du test #" + index +
-                ": Je n'attendais pas votre résultat: " + actual;
+                ": Je n'attendais pas votre résultat: " +
+                util.inspect(actual);
         },
         failException: function (index, exception) {
             return "Échec du test #" + index + ": Exception signalée: " +
@@ -114,7 +116,8 @@ yasmini.message = {
         },
         fail: function (index, actual) {
             return "Failed test #" + index +
-                ": I was not expecting your result: " + actual;
+                ": I was not expecting your result: " +
+                util.inspect(actual);
         },
         failException: function (index, exception) {
             return "Failed test #" + index + ": Exception is: " +

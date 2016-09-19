@@ -388,6 +388,8 @@ describe("Yasmini library: a light Jasmine framework", function () {
               expect(check0.pass).toBeTruthy();
               check0 = yasmini.expect([1, 2, 3]).toEqual([1, 2, 3]);
               expect(check0.pass).toBeTruthy();
+              check0 = yasmini.expect(['a']).toEqual(['a']);
+              expect(check0.pass).toBeTruthy();
               check0 = yasmini.expect(expect).toEqual(expect);
               expect(check0.pass).toBeTruthy();
               check0 = yasmini.expect([{a: 2}]).toEqual([{a: 2}]);
@@ -395,9 +397,9 @@ describe("Yasmini library: a light Jasmine framework", function () {
               check0 = yasmini.expect(null).toEqual(null);
               expect(check0.pass).toBeTruthy();
           });
-          expect(it1.expectations.length).toBe(7);
-          expect(it1.expectationAttempted).toBe(7);
-          expect(it1.expectationSuccessful).toBe(7);
+          expect(it1.expectations.length).toBe(8);
+          expect(it1.expectationAttempted).toBe(8);
+          expect(it1.expectationSuccessful).toBe(8);
           expect(it1.expectations[1].pass).toBe(true);
       });
   });
