@@ -1,6 +1,6 @@
 {
   "name": "yasmini",
-  "version": "0.1.27",
+  "version": "0.1.28",
   "engines": {
     "node": ">= 0.12.7"
   },
@@ -41,7 +41,8 @@
     "test": "make tests"
   },
   "dependencies": {
-    "lodash": "^4.15"
+      "lodash": "^4.15",
+      "bluebird": "^3.4"
   },
   "devDependencies": {
     "jasmine": "^2.3.4"

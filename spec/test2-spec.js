@@ -2,41 +2,64 @@
 // Usage: jasmine spec/test2-spec.js
 // jshint jasmine: true
 
-var yasmini = require('yasmini');
+var yasmini = require('../yasmini.js');
 var vm = require('vm');
 
 describe("Yasmini library: a light Jasmine framework", function () {
+    
   it("should offer describe", function () {
-    var desc = yasmini.describe("Yasmini: should offer describe", function () {
-      return 42;
-    });
-    expect(desc.message).toBe("Yasmini: should offer describe");
-    expect(desc.result).toBe(42);
-    expect(desc.raisedException).toBe(false);
+      var desc = yasmini.describe("Yasmini: should offer describe",
+                                  function () {
+          return 42;
+      });
+      expect(desc.message).toBe("Yasmini: should offer describe");
+      expect(desc.result).toBe(42);
+      expect(desc.raisedException).toBe(false);
+      //console.log(desc.log);
   });
 
-  it("should offer describe with options", function () {
+  it("should offer describe (as a Promise)", function (done) {
+    yasmini.describe("Yasmini: should offer describe",
+      function () {
+          return 42;
+      }).hence(function (desc) {
+          //console.log(desc);
+          expect(desc.message).toBe("Yasmini: should offer describe");
+          expect(desc.result).toBe(42);
+          expect(desc.raisedException).toBe(false);
+          //console.log(desc.log);
+          done();
+      });
+  });
+    
+  it("should offer describe with options", function (done) {
     var msg = "Yasmini: should offer describe with options";
-    var desc = yasmini.describe(msg, function () {
+    yasmini.describe(msg, function () {
       return 42;
     }, {
       foobar: 33
+    }).hence(function (desc) {
+        expect(desc.foobar).toBe(33);
+        expect(desc.message).toBe(msg);
+        expect(desc.result).toBe(42);
+        //console.log(desc.log);
+        expect(desc.raisedException).toBe(false);
+        done();
     });
-    expect(desc.foobar).toBe(33);
-    expect(desc.message).toBe(msg);
-    expect(desc.result).toBe(42);
-    expect(desc.raisedException).toBe(false);
   });
 
-  it("should offer describe catching exceptions", function () {
+  it("should offer describe catching exceptions", function (done) {
     var msg = "Yasmini: should offer describe catching exceptions";
-    var desc = yasmini.describe(msg, function () {
+    yasmini.describe(msg, function () {
       throw 42;
+    }).hence(function (desc) {
+        expect(desc.message).toBe(msg);
+        expect(desc.result).toBeUndefined();
+        expect(desc.raisedException).toBe(true);
+        expect(desc.exception).toBe(42);
+        //console.log(desc.log);
+        done();
     });
-    expect(desc.message).toBe(msg);
-    expect(desc.result).toBeUndefined();
-    expect(desc.raisedException).toBe(true);
-    expect(desc.exception).toBe(42);
   });
 
   it("javascript verification that finally resumes a throw", function () {
@@ -56,43 +79,53 @@ describe("Yasmini library: a light Jasmine framework", function () {
     expect(a).toBe(4);
   });
 
-  it("should offer it", function () {
-    var desc = yasmini.describe("Yasmini: should offer it", function () {
-      var it1 = yasmini.it("should run it", function () {
+  it("should offer it", function (done) {
+    var it1;
+    yasmini.describe("Yasmini: should offer it", function () {
+        it1 = yasmini.it("should run it", function () {
         return 33;
       });
-      expect(it1.expectationAttempted).toBe(0);
+    }).hence(function (desc) {
+        expect(it1.expectationAttempted).toBe(0);
+        expect(desc.specifications.length).toBe(1);
+        var spec = desc.specifications[0];
+        expect(spec.result).toBe(33);
+        expect(spec.raisedException).toBe(false);
+        //console.log(desc.log);
+        done();
     });
-    expect(desc.specifications.length).toBe(1);
-    var spec = desc.specifications[0];
-    expect(spec.result).toBe(33);
-    expect(spec.raisedException).toBe(false);
   });
 
-  it("should offer two it with options", function () {
-    var desc = yasmini.describe("Yasmini: should offer two it with options", function () {
-      var it1 = yasmini.it("should run it", function () {
-        33; // no return
-      }, {
-        foobar: 35
-      });
-      expect(it1.foobar).toBe(35);
-      var it2 = yasmini.it("should run another it", function () {
-        return 34;
-      });
-      expect(it2).toBeTruthy();
+  it("should offer two it with options", function (done) {
+    var it1, it2;
+    yasmini.describe("Yasmini: should offer two it with options", 
+    function () {
+        it1 = yasmini.it("should run it", function () {
+            33; // no return
+        }, {
+            foobar: 35
+        });
+        it2 = yasmini.it("should run another it", function () {
+            return 34;
+        });
+    }).hence(function (desc) {
+        expect(it1.foobar).toBe(35);
+        expect(it2).toBeTruthy();
+        expect(desc.specifications.length).toBe(2);
+        var spec1 = desc.specifications[0];
+        expect(spec1.result).toBeUndefined();
+        expect(spec1.raisedException).toBe(false);
+        var spec2 = desc.specifications[1];
+        expect(spec2.result).toBe(34);
+        expect(spec2.raisedException).toBe(false);
+        //console.log(desc.log);
+        done();
     });
-    expect(desc.specifications.length).toBe(2);
-    var spec1 = desc.specifications[0];
-    expect(spec1.result).toBeUndefined();
-    expect(spec1.raisedException).toBe(false);
-    var spec2 = desc.specifications[1];
-    expect(spec2.result).toBe(34);
-    expect(spec2.raisedException).toBe(false);
   });
 
-  it("should offer two it with exception", function () {
-    var desc = yasmini.describe("Yasmini: should offer two it with exception", function () {
+  it("should offer two it with exception", function (done) {
+    yasmini.describe("Yasmini: should offer two it with exception",
+      function () {
       var it1 = yasmini.it("should run it", function () {
         throw 33;
       }, {
@@ -102,100 +135,121 @@ describe("Yasmini library: a light Jasmine framework", function () {
       yasmini.it("should not run another it", function () {
         return 34;
       });
+    }).hence(function (desc) {
+        expect(desc.specifications.length).toBe(2);
+        var spec1 = desc.specifications[0];
+        expect(spec1.result).toBeUndefined();
+        expect(spec1.raisedException).toBe(true);
+        expect(spec1.exception).toBe(33);
+        //console.log(desc.log);
+        done();
     });
-    expect(desc.specifications.length).toBe(1);
-    var spec1 = desc.specifications[0];
-    expect(spec1.result).toBeUndefined();
-    expect(spec1.raisedException).toBe(true);
-    expect(spec1.exception).toBe(33);
   });
 
-  it("should offer expect", function () {
+  it("should offer expect", function (done) {
+    var it1;
     yasmini.describe("Yasmini: should offer expect", function () {
-      var it1 = yasmini.it("should run it", function () {
+      it1 = yasmini.it("should run it", function () {
         var expect1 = yasmini.expect(41).toBe(41);
         expect(expect1).toBeTruthy();
       });
-      expect(it1.expectations.length).toBe(1);
-      expect(it1.expectations[0].pass).toBe(true);
-      expect(it1.expectationAttempted).toBe(1);
-      expect(it1.expectationSuccessful).toBe(1);
+    }).hence(function (desc) {
+        expect(it1.expectations.length).toBe(1);
+        expect(it1.expectations[0].pass).toBe(true);
+        expect(it1.expectationAttempted).toBe(1);
+        expect(it1.expectationSuccessful).toBe(1);
+        //console.log(desc.log);
+        done();
     });
   });
 
-  it("should offer chained expect", function () {
-    yasmini.describe("Yasmini: should offer chained expect", function () {
-      var it1 = yasmini.it("should run it", function () {
-        yasmini.expect(41).toBe(41).toBe(41);
-      });
-      expect(it1.expectations.length).toBe(1);
-      expect(it1.expectationAttempted).toBe(1);
-      expect(it1.expectationSuccessful).toBe(1);
-      expect(it1.expectations[0].pass).toBe(true);
+    it("should offer chained expect", function (done) {
+        yasmini.describe("Yasmini: should offer chained expect",
+             function () {
+                 yasmini.it("should run it", function () {
+                     yasmini.expect(41).toBe(41).toBe(41);
+                 });
+             }).hence(function (desc) {
+                 var it1 = desc.specifications[0];
+                 expect(it1.expectations.length).toBe(1);
+                 expect(it1.expectationAttempted).toBe(1);
+                 expect(it1.expectationSuccessful).toBe(1);
+                 expect(it1.expectations[0].pass).toBe(true);
+                 done();
+             });
     });
-  });
 
-  it("should offer multiple expect", function () {
-    yasmini.describe("Yasmini: should offer multiple expect", function () {
-      var it1 = yasmini.it("should run it", function () {
-        yasmini.expect(41).toBe(41);
-        yasmini.expect(true).toBe(true);
-      });
-      expect(it1.expectations.length).toBe(2);
-      expect(it1.expectationAttempted).toBe(2);
-      expect(it1.expectationSuccessful).toBe(2);
-      expect(it1.expectations[0].pass).toBe(true);
-      expect(it1.expectations[1].pass).toBe(true);
+    it("should offer multiple expect", function (done) {
+      yasmini.describe("Yasmini: should offer multiple expect",
+                                  function () {
+            yasmini.it("should run it", function () {
+              yasmini.expect(41).toBe(41);
+              yasmini.expect(true).toBe(true);
+          });
+      }).hence(function (desc) {
+            var it1 = desc.specifications[0];
+            expect(it1.expectations.length).toBe(2);
+            expect(it1.expectationAttempted).toBe(2);
+            expect(it1.expectationSuccessful).toBe(2);
+            expect(it1.expectations[0].pass).toBe(true);
+            expect(it1.expectations[1].pass).toBe(true);
+            done();
+        });
     });
-  });
 
-  it("should offer multiple expect not all true", function () {
+  it("should offer multiple expect not all true", function (done) {
     yasmini.describe("Yasmini: should offer multiple expect not all true",
     function () {
-      var it1 = yasmini.it("should run it", function () {
+      yasmini.it("should run it", function () {
         yasmini.expect(41).toBe("euh");
         yasmini.expect(true).toBe(true);
       });
-      expect(it1.expectations.length).toBe(2);
-      expect(it1.expectationAttempted).toBe(2);
-      expect(it1.expectationSuccessful).toBe(1);
-      expect(it1.expectations[0].pass).toBe(false);
-      expect(it1.expectations[1].pass).toBe(true);
+    }).hence(function (desc) {
+        var it1 = desc.specifications[0];
+        expect(it1.expectations.length).toBe(2);
+        expect(it1.expectationAttempted).toBe(2);
+        expect(it1.expectationSuccessful).toBe(1);
+        expect(it1.expectations[0].pass).toBe(false);
+        expect(it1.expectations[1].pass).toBe(true);
+        done();
     });
   });
 
-  it("should offer multiple expect not all true with exception", function () {
+  it("should offer multiple expect not all true with exception", 
+  function (done) {
+    var it1, it11;
     yasmini.describe("Yasmini: should offer multiple expect not all true",
     function () {
-        var spec1 = this;
-        var it1, it11;
-        try {
-            it11 = yasmini.it("should run it", function () {
+        var desc1 = this;
+        expect(desc1 instanceof yasmini.class.Description);
+        it11 = yasmini.it("should run it", function () {
                 it1 = this;
+                expect(it1 instanceof yasmini.class.Specification);
                 yasmini.expect(41).toBe("euh");
                 fail('should not arrive here!');
-            }, {
+        }, {
                 stopOnFailure: true
-            });
-        } catch (exc) {
-            expect(it11).toBe(undefined);
-            expect(it1.expectations.length).toBe(1);
-            expect(it1.expectationAttempted).toBe(1);
-            expect(it1.expectationSuccessful).toBe(0);
-            expect(it1.expectations[0].pass).toBe(false);
-            expect(it1.expectations[0].raisedException).toBe(false);
-            expect(it1.raisedException).toBe(true);
-            var error = it1.exception;
-            expect(error.expectation).toBe(it1.expectations[0]);
-            expect(error.expectation.actual).toBe(41);
-            expect(error.matcher.toString()).toBe('toBe');
-            //console.log(error.toString());
-            expect(error.toString()).toMatch(/expect\(41\).toBe/);
-            expect(error.args[0]).toBe('euh');
-            expect(error instanceof yasmini.class.Failure).toBe(true);
-            expect(error instanceof Error).toBe(true);
-        }
-    });
+        });
+    }).hence(function () {
+          expect(it11).toBeDefined();
+          expect(it1.expectations.length).toBe(1);
+          expect(it1.expectationAttempted).toBe(1);
+          expect(it1.expectationSuccessful).toBe(0);
+          expect(it1.expectations[0].pass).toBe(false);
+          expect(it1.expectations[0].raisedException).toBe(false);
+          expect(it1.raisedException).toBe(true);
+          var error = it1.exception;
+          expect(error.expectation).toBe(it1.expectations[0]);
+          expect(error.expectation.actual).toBe(41);
+          expect(error.matcher.toString()).toBe('toBe');
+          //console.log(error.toString());
+          expect(error.toString()).toMatch(/expect\(41\).toBe/);
+          expect(error.args[0]).toBe('euh');
+          expect(error instanceof yasmini.class.Failure).toBe(true);
+          expect(error instanceof Error).toBe(true);
+          //console.log(desc.log);
+          done();
+      });
   });
 
   it("should offer fail()", function () {
@@ -215,9 +269,9 @@ describe("Yasmini library: a light Jasmine framework", function () {
       //console.log(ydesc);
   });
 
-  it("should offer fail()", function () {
-      var ydesc, step = 0;
-      yasmini.describe("Yasmini: should offer fail()", 
+  it("should also offer fail()", function () {
+    var ydesc, step = 0;
+    yasmini.describe("Yasmini: should offer fail()", 
       function () {
           function shouldFail () {
               // will provoke: RangeError: Maximum call stack size exceeded
@@ -246,34 +300,40 @@ describe("Yasmini library: a light Jasmine framework", function () {
       });
   });
 
-  it("should not offer .not", function () {
+  it("should not offer .not", function (done) {
+    var it1;
     yasmini.describe("Yasmini: should not offer .not", 
     function () {
-      var it1 = yasmini.it("check .not", function () {
+      it1 = yasmini.it("check .not", function () {
          var check1 = yasmini.expect(44).not.toBe(1);
          expect(check1.pass).toBe(false);
       });
+    }).hence(function () {
       expect(it1.expectations.length).toBe(1);
       expect(it1.expectationAttempted).toBe(1);
       expect(it1.expectationSuccessful).toBe(0);
       expect(it1.expectations[0].pass).toBe(false);
+      done();
     });
   });
 
-  it("should offer .toBeDefined", function () {
+  it("should offer .toBeDefined", function (done) {
+    var it1;
     yasmini.describe("Yasmini: should offer .toBeDefined", 
     function () {
-      var it1 = yasmini.it("check .toBeDefined", function () {
+      it1 = yasmini.it("check .toBeDefined", function () {
          var check1 = yasmini.expect(44).toBeDefined();
          expect(check1.pass).toBe(true);
          var check2 = yasmini.expect(null).toBeDefined();
          expect(check2.pass).toBe(true);
       });
+    }).promise.then(function () {
       expect(it1.expectations.length).toBe(2);
       expect(it1.expectationAttempted).toBe(2);
       expect(it1.expectationSuccessful).toBe(2);
       expect(it1.expectations[0].pass).toBe(true);
       expect(it1.expectations[1].pass).toBe(true);
+      done();
     });
   });
 
@@ -287,10 +347,12 @@ describe("Yasmini library: a light Jasmine framework", function () {
          expect(check1.pass).toBe(true);
          var check1 = yasmini.expect(3).toBeUndefined();
          expect(check1.pass).toBe(false);
+      }).hence(function (desc) {
+          var it1 = desc.specifications[0];
+          expect(it1.expectations.length).toBe(3);
+          expect(it1.expectationAttempted).toBe(3);
+          expect(it1.expectationSuccessful).toBe(1);
       });
-      expect(it1.expectations.length).toBe(3);
-      expect(it1.expectationAttempted).toBe(3);
-      expect(it1.expectationSuccessful).toBe(1);
     });
   });
 
@@ -302,12 +364,14 @@ describe("Yasmini library: a light Jasmine framework", function () {
          expect(check1.pass).toBe(false);
          var check2 = yasmini.expect(null).toBeNull();
          expect(check2.pass).toBe(true);
+      }).hence(function (desc) {
+          var it1 = desc.specifications[0];
+          expect(it1.expectations.length).toBe(2);
+          expect(it1.expectationAttempted).toBe(2);
+          expect(it1.expectationSuccessful).toBe(1);
+          expect(it1.expectations[0].pass).toBe(false);
+          expect(it1.expectations[1].pass).toBe(true);
       });
-      expect(it1.expectations.length).toBe(2);
-      expect(it1.expectationAttempted).toBe(2);
-      expect(it1.expectationSuccessful).toBe(1);
-      expect(it1.expectations[0].pass).toBe(false);
-      expect(it1.expectations[1].pass).toBe(true);
     });
   });
 
@@ -321,11 +385,13 @@ describe("Yasmini library: a light Jasmine framework", function () {
          expect(check1.pass).toBe(true);
          var check2 = yasmini.expect(1/0).toBeNaN();
          expect(check2.pass).toBe(false);
+      }).hence(function (desc) {
+          var it1 = desc.specifications[0];
+          expect(it1.expectations.length).toBe(3);
+          expect(it1.expectationAttempted).toBe(3);
+          expect(it1.expectationSuccessful).toBe(1);
+          expect(it1.expectations[1].pass).toBe(true);
       });
-      expect(it1.expectations.length).toBe(3);
-      expect(it1.expectationAttempted).toBe(3);
-      expect(it1.expectationSuccessful).toBe(1);
-      expect(it1.expectations[1].pass).toBe(true);
     });
   });
 
@@ -339,11 +405,13 @@ describe("Yasmini library: a light Jasmine framework", function () {
          expect(check1.pass).toBe(true);
          var check2 = yasmini.expect(3).toBeGreaterThan(3);
          expect(check2.pass).toBe(false);
+      }).hence(function (desc) {
+          var it1 = desc.specifications[0];
+          expect(it1.expectations.length).toBe(3);
+          expect(it1.expectationAttempted).toBe(3);
+          expect(it1.expectationSuccessful).toBe(1);
+          expect(it1.expectations[1].pass).toBe(true);
       });
-      expect(it1.expectations.length).toBe(3);
-      expect(it1.expectationAttempted).toBe(3);
-      expect(it1.expectationSuccessful).toBe(1);
-      expect(it1.expectations[1].pass).toBe(true);
     });
   });
 
@@ -357,11 +425,13 @@ describe("Yasmini library: a light Jasmine framework", function () {
          expect(check1.pass).toBe(false);
          var check2 = yasmini.expect(3).toBeLessThan(3);
          expect(check2.pass).toBe(false);
+      }).hence(function (desc) {
+          var it1 = desc.specifications[0];
+          expect(it1.expectations.length).toBe(3);
+          expect(it1.expectationAttempted).toBe(3);
+          expect(it1.expectationSuccessful).toBe(1);
+          expect(it1.expectations[0].pass).toBe(true);
       });
-      expect(it1.expectations.length).toBe(3);
-      expect(it1.expectationAttempted).toBe(3);
-      expect(it1.expectationSuccessful).toBe(1);
-      expect(it1.expectations[0].pass).toBe(true);
     });
   });
 
@@ -377,11 +447,13 @@ describe("Yasmini library: a light Jasmine framework", function () {
          expect(check2.pass).toBe(false);
          var check3 = yasmini.expect(3.03).toBeCloseTo(3.037,1);
          expect(check3.pass).toBe(true);
+      }).hence(function (desc) {
+          var it1 = desc.specifications[0];
+          expect(it1.expectations.length).toBe(4);
+          expect(it1.expectationAttempted).toBe(4);
+          expect(it1.expectationSuccessful).toBe(2);
+          expect(it1.expectations[1].pass).toBe(true);
       });
-      expect(it1.expectations.length).toBe(4);
-      expect(it1.expectationAttempted).toBe(4);
-      expect(it1.expectationSuccessful).toBe(2);
-      expect(it1.expectations[1].pass).toBe(true);
     });
   });
 
@@ -406,6 +478,8 @@ describe("Yasmini library: a light Jasmine framework", function () {
               check0 = yasmini.expect(null).toEqual(null);
               expect(check0.pass).toBeTruthy();
           });
+      }).hence(function (desc) {
+          var it1 = desc.specifications[0];
           expect(it1.expectations.length).toBe(8);
           expect(it1.expectationAttempted).toBe(8);
           expect(it1.expectationSuccessful).toBe(8);
@@ -421,23 +495,28 @@ describe("Yasmini library: a light Jasmine framework", function () {
           return 45;
         }).invoke().toBe(45);
         expect(check1.actual).toBe(45);
+      }).hence(function(desc) {
+          var it1 = desc.specifications[0];
+          expect(it1.expectations.length).toBe(1);
+          expect(it1.expectationAttempted).toBe(1);
+          expect(it1.expectationSuccessful).toBe(1);
+          expect(it1.expectations[0].pass).toBe(true);
       });
-      expect(it1.expectations.length).toBe(1);
-      expect(it1.expectationAttempted).toBe(1);
-      expect(it1.expectationSuccessful).toBe(1);
-      expect(it1.expectations[0].pass).toBe(true);
     });
   });
 
   it("first spec fails", function () {
-      var ydesc;
       yasmini.describe("Yasmini: first spec fails", function () {
-          ydesc = this;
           yasmini.it("immediately fails", function () {
-              yasmini.expect(3 - "foo").toBe(something);
+              yasmini.expect(3 - "foo").toBe(123);
           });
-          //console.log(ydesc);
-          expect(ydesc.specification.length).toBe(1);
+      }).hence(function (desc) {
+          //console.log(desc.log);
+          expect(desc.specifications.length).toBe(1);
+          var it = desc.specifications[0];
+          expect(it.pass).toBeFalsy();
+          expect(it.expectations.length).toBe(1);
+          expect(it.expectations[0].pass).toBeFalsy();
       });
   });
 
@@ -458,11 +537,13 @@ describe("Yasmini library: a light Jasmine framework", function () {
         }).toThrow();
         expect(check4.pass).toBe(false);
       });
-      expect(it1.expectations.length).toBe(3);
-      expect(it1.expectationAttempted).toBe(3);
-      expect(it1.expectationSuccessful).toBe(2);
-      expect(it1.expectations[0].pass).toBe(true);
-      expect(it1.expectations[1].pass).toBe(true);
+    }).hence(function (desc) {
+        var it1 = desc.specifications[0];
+        expect(it1.expectations.length).toBe(3);
+        expect(it1.expectationAttempted).toBe(3);
+        expect(it1.expectationSuccessful).toBe(2);
+        expect(it1.expectations[0].pass).toBe(true);
+        expect(it1.expectations[1].pass).toBe(true);
     });
   });
 
@@ -473,10 +554,12 @@ describe("Yasmini library: a light Jasmine framework", function () {
         var code = "3 * 4";
         var check1 = yasmini.expect(code).eval().toBe(12);
         expect(check1.code).toBe(code);
-        expect(check1.actual).toBe(12);
+          expect(check1.actual).toBe(12);
       });
-      expect(it1.expectationAttempted).toBe(1);
-      expect(it1.expectationSuccessful).toBe(1);
+    }).hence(function (desc) {
+        var it1 = desc.specifications[0];
+        expect(it1.expectationAttempted).toBe(1);
+        expect(it1.expectationSuccessful).toBe(1);
     });
   });
 
@@ -503,10 +586,89 @@ describe("Yasmini library: a light Jasmine framework", function () {
         expect(check1.raisedException).toBe(true);
         expect(check1.exception).toBe(67);
       });
-      expect(it1.expectationAttempted).toBe(1);
-      expect(it1.expectationSuccessful).toBe(0);
+    }).hence(function (desc) {
+        var it1 = desc.specifications[0];
+        expect(it1.expectationAttempted).toBe(1);
+        expect(it1.expectationSuccessful).toBe(0);
     });
   });
+
+  it("should offer done explicitly called", function (done) {
+      var fin = false;
+      yasmini.describe("Yasmini: should offer done explicitly called", function () {
+          yasmini.it("should run it", function (ydone) {
+              function finished () {
+                  console.log("finished called");
+                  fin = true;
+                  ydone();
+              }
+              fin = true;
+              ydone();
+          });
+      }).hence(function (desc) {
+          //console.log(desc.log);
+          expect(fin).toBeTruthy();
+          done();
+      });
+  });
+          
+  it("should offer done deferred called", function (done) {
+      var fin = false;
+      yasmini.describe("Yasmini: should offer done deferred called", function () {
+          yasmini.it("should run it", function (ydone) {
+              function finished () {
+                  //console.log("finished called");
+                  fin = true;
+                  ydone();
+              }
+              setTimeout(finished, 500);
+              yasmini.expect(fin).toBeFalsy();
+          });
+      }).hence(function (desc) {
+          //console.log(desc.log);
+          expect(fin).toBeTruthy();
+          done();
+      });
+  });
+          
+  it("should offer done deferred not called soon enough", function (done) {
+      var fin = false;
+      yasmini.describe("Yasmini: should offer done deferred not called soon enough", function () {
+          yasmini.it("should run it", function (ydone) {
+              function finished () {
+                  console.log("finished called");
+                  fin = true;
+                  ydone();
+              }
+              setTimeout(finished, 5500); // 5.5 seconds
+              yasmini.expect(fin).toBeFalsy();
+          }, 1000 ); // 1 second
+      }).hence(function (desc) {
+          //console.log(desc.log);
+          expect(fin).toBeFalsy();
+          done();
+      });
+  });
+           
+  it("should offer done deferred not called soon enough", function (done) {
+      var fin = false;
+      yasmini.describe("Yasmini: should offer done deferred not called soon enough", function () {
+          yasmini.it("should run it", function (ydone) {
+              function finished () {
+                  console.log("finished called");
+                  fin = true;
+                  ydone();
+              }
+              setTimeout(finished, 2500); // 2.5 seconds
+              yasmini.expect(fin).toBeFalsy();
+          }, 1000 ); // 1 second
+      }).hence(function (desc) {
+          //console.log(desc.log);
+          expect(fin).toBeFalsy();
+          done();
+      });
+  });
+          
 
 }); // end of describe
 

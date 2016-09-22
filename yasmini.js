@@ -23,6 +23,7 @@ var path = require('path');
 var fs = require('fs');
 var util = require('util');
 var _ = require('lodash');
+var Promise = require('bluebird');
 
 /*
 * Load utility. The utility file should be stored aside yasmini.js
@@ -38,7 +39,7 @@ function load (filename, bindings) {
     require: require,
     console: console
   };
-  newglobal = enrich(newglobal, bindings || {});
+  newglobal = Object.assign(newglobal, bindings || {});
   vm.runInNewContext(src, newglobal);
   module.exports.plugins.push(filename);
 }
@@ -54,28 +55,25 @@ var message = {
     }
 };
 
-/*
-* Enrich an object with a number of sources (processed from left to right).
-* Usage   target = enrich(target, source1, source2, ...);
-*/
-var enrich = function (target) {
-  for ( var i=1 ; i<arguments.length ; i++ ) {
-    var source = arguments[i];
-    for (var key in source) {
-      if (source.hasOwnProperty(key)) {
-        target[key] = source[key];
-      }
+function run_hook (o, name) {
+    var method = o[name + 'Hook'];
+    if ( method ) {
+        try {
+            method.call(o);
+        } catch (exc) {
+            o[name + 'HookException'] = exc;
+        }
     }
-  }
-  return target;
-};
+}
+
+// *********** Description *************
 
 function Description (msg, f, options) {
   this.message = msg;
   this.behavior = f;
   this.verbose = false;
   this.specificationIntended = undefined;
-  enrich(this, options || {});
+  Object.assign(this, options || {});
   // Internal fields:
   this.specifications = [];
   this.result = undefined;
@@ -86,9 +84,58 @@ function Description (msg, f, options) {
   this.expectationAttempted = 0;
   this.expectationSuccessful = 0;
   this.pass = false;
+  this.log = [];
 }
 Description.prototype.run = function () {
-  this.result = this.behavior.call(this);
+    var description = this;
+    description.log_("Description run");
+    var promise = new Promise(function (resolve, reject) {
+        try {
+            description.log_("Description run Promise");
+            description.result = description.behavior.call(description);
+        } catch (exc) {
+            description.log_("Description run Promise catch " + exc);
+            description.raisedException = true;
+            description.exception = exc;
+            description.result = undefined;
+        }
+        description.update_();
+        resolve(description);
+    }).finally(function () {
+        description.log_("Description run Promise finally");
+        return description.run_specifications();
+    });
+    return promise;
+};
+Description.prototype.log_ = function (msg) {
+    this.log.push([ process.uptime(), msg]);
+}
+Description.prototype.run_specifications = function () {
+    var description = this;
+    description.log_("Description run_specifications");
+    function run_specification (i) {
+        if ( i < description.specifications.length ) {
+            description.log_("Description run_specification " + i);
+            var spec = description.specifications[i];
+            return spec.run()
+                .finally(function () {
+                    description.log_("Description run_specification finally");
+                    if ( !spec.pass && spec.stopOnFailure ) {
+                        return Promise.reject(false);
+                    } else {
+                        return run_specification(i+1);
+                    }
+                });
+        } else {
+            return Promise.resolve(true);
+        }
+    }
+    return run_specification(0);
+};
+// A description behaves similarly to a Promise except that then is
+// renamed hence.
+Description.prototype.hence = function () {
+    return this.promise.then.apply(this.promise, arguments);
 };
 Description.prototype.beginHook = function () {
   return this;
@@ -97,56 +144,66 @@ Description.prototype.endHook = function () {
   return this;
 };
 Description.prototype.update_ = function () {
-    this.pass = true;
+    var description = this;
+    description.log_("Description update_");
+    description.pass = true;
     // Recompute specificationSuccessful:
-    this.expectationAttempted = 0;
-    this.expectationSuccessful = 0;
-    this.specificationSuccessful = 0;
-    this.specifications.forEach(function (spec) {
+    description.expectationAttempted = 0;
+    description.expectationSuccessful = 0;
+    description.specificationSuccessful = 0;
+    function isPassed (spec) {
         // One failed specification fails the entire description
         if ( spec.pass ) {
-            this.specificationSuccessful++;
+            description.specificationSuccessful++;
         } else {
-            this.pass = false;
+            description.pass = false;
         }
-        this.expectationAttempted += spec.expectationAttempted;
-        this.expectationSuccessful += spec.expectationSuccessful;
-    }, this);
-    // check intended versus attempted:
-    if ( this.specificationIntended &&
-         this.specificationAttempted !=
-           this.specificationIntended ) {
-        this.pass = false;
+        description.expectationAttempted += spec.expectationAttempted;
+        description.expectationSuccessful += spec.expectationSuccessful;
     }
-    return this;
+    description.specifications.forEach(isPassed);
+    // check intended versus attempted:
+    if ( description.specificationIntended &&
+         description.specificationAttempted !=
+         description.specificationIntended ) {
+        description.pass = false;
+    }
+    return description;
 };
 
 function describe (msg, f, options) {
-  var description = new Description(msg, f, options);
-  try {
-    description.beginHook();
+    var description = new Description(msg, f, options);
+    description.log_("describe " + msg);
+    run_hook(description, 'begin');
     inner_it = mk_it(description);
-    description.run();
-  } catch (exc) {
-    description.exception = exc;
-    description.raisedException = true;
-  } finally {
-    inner_it = wrong_it;
-    description.update_();
-    description.endHook();
-  }
-  return description;
+    description.promise = description.run()
+        .catch(function (exc) {
+            description.log_("describe catch " + exc);
+            description.exception = exc;
+            description.raisedException = true;
+        })
+        .finally(function () {
+            description.log_("describe finally");
+            inner_it = wrong_it;
+            description.update_();
+            run_hook(description, 'end');
+            return description;
+        });
+    return description;
 }
+
+// *********** Specification *************
 
 function Specification (description, msg, f, options) {
   this.description = description;
+  description.log_("Specification: " + msg);
   description.specifications.push(this);
   this.message = msg;
   this.behavior = f;
   this.stopOnFailure = false;
   this.expectationIntended = undefined;
   this.verbose = description.verbose;
-  enrich(this, options || {});
+  Object.assign(this, options || {});
   // Internal fields:
   this.expectations = [];
   this.result = undefined;
@@ -157,7 +214,75 @@ function Specification (description, msg, f, options) {
   this.pass = false;
 }
 Specification.prototype.run = function () {
-  this.result = this.behavior.call(this);
+    var spec = this;
+    run_hook(spec, 'begin');
+    var description = spec.description;
+    description.log_("Specification run");
+    description.specificationAttempted++;
+    description.log_("Specification run start");
+    var donePromise = new Promise(function (resolve, reject) {
+        inner_expect = mk_expect(spec);
+        inner_fail = mk_fail(spec);
+        // spec.done true means that the promise is fullfilled!
+        spec.done = false;
+        spec.result = undefined;
+        try {
+            if ( spec.behavior.length === 0 ) {
+                description.log_("Specification run start try0");
+                spec.result = spec.behavior.call(spec);
+                description.log_("Specification run start try0 end");
+                spec.done = true;
+                resolve(spec.result);
+            } else {
+                function done () {
+                    description.log_("Specification run start done");
+                    spec.done = true;
+                    resolve(spec.result);
+                }
+                description.log_("Specification run start try>0");
+                spec.result = spec.behavior.call(spec, done);
+                description.log_("Specification run start try>0 end");
+            }
+        } catch (exc) {
+            description.log_("Specification run start catch " + exc);
+            spec.exception = exc;
+            spec.raisedException = true;
+            spec.done = true;
+            reject(exc);
+        }
+    });
+    var delayedPromise = new Promise(function (resolve, reject) {
+        setTimeout(function () {
+            description.log_("Specification run start delayedPromise");
+            if ( ! spec.done ) {
+                reject(new Error("Timeout exhausted"));
+            }
+        }, spec.timeout);
+    });
+    spec.promise = Promise.race([donePromise, delayedPromise])
+      .catch(function (exc) {
+          description.log_("Specification run catch");
+          spec.exception = exc;
+          spec.raisedException = true;
+          if ( spec.stopOnFailure ) {
+              spec.pass = false;
+          }
+      })
+      .finally(function (result) {
+          description.log_("Specification run finally");
+          inner_expect = wrong_expect;
+          inner_fail = wrong_fail;
+          spec.expectations.forEach(function (expectation) {
+              run_hook(expectation, 'end');
+          });
+          spec.update_();
+          run_hook(spec, 'end');
+          if ( spec.stopOnFailure && ! spec.pass ) {
+              throw spec.raisedException;
+          }
+          return Promise.resolve(spec.result);
+      });
+    return spec.promise;
 };
 Specification.prototype.beginHook = function () {
   return this;
@@ -166,64 +291,45 @@ Specification.prototype.endHook = function () {
   return this;
 };
 Specification.prototype.update_ = function () {
-  this.pass = true;
+  var spec = this;
+  spec.description.log_("Specification update_");
+  spec.pass = true;
   // recompute expectationSuccessful:
-  this.expectationSuccessful = 0;
-  this.expectations.forEach(function (expectation) {
+  spec.expectationSuccessful = 0;
+  spec.expectations.forEach(function (expectation) {
     if ( expectation.pass ) {
-      this.expectationSuccessful++;
+      spec.expectationSuccessful++;
     } else {
       // One failed expectation fails the entire specification!
-      this.pass = false;
+      spec.pass = false;
     }
-  }, this);
+  }, spec);
   // Check intended versus attempted:
-  if ( this.expectationIntended &&
-    this.expectationIntended != this.expectationAttempted ) {
-      this.pass = false;
+  if ( spec.expectationIntended &&
+    spec.expectationIntended != spec.expectationAttempted ) {
+      spec.pass = false;
     }
     // propagate to description:
-    this.description.update_();
-    return this;
+    spec.description.update_();
+    return spec;
   };
 
 function mk_it (description) {
-  var newit = function (msg, f, options) {
-    var spec = new Specification(description, msg, f, options);
-    try {
-      spec.beginHook();
-      description.specificationAttempted++;
-      inner_expect = mk_expect(spec);
-      inner_fail = mk_fail(spec);
-      spec.run();
-    } catch (exc) {
-      spec.exception = exc;
-      spec.raisedException = true;
-      if ( spec.stopOnFailure ) {
-        spec.pass = false;
-        throw exc;
-      }
-    } finally {
-      inner_expect = wrong_expect;
-      inner_fail = wrong_fail;
-      spec.expectations.forEach(function (expectation) {
-          try {
-              expectation.endHook();
-          } catch (exc) {
-              expectation.endHookException = exc;
-          }
-      });
-      spec.update_();
-      try {
-          spec.endHook();
-      } catch (exc) {
-          spec.endHookException = exc;
-      }
-    }
-    return spec;
-  };
-  return newit;
+    var newit = function (msg, f, options) {
+        if ( options && _.isNumber(options) ) {
+            options = {timeout: options};
+        } else if ( options && _.isObject(options) ) {
+            options = Object.assign({timeout: (4.75*1000)}, options);
+        } else {
+            options = {timeout: 4.75*1000};
+        }
+        var spec = new Specification(description, msg, f, options);
+        return spec;
+    };
+    return newit;
 }
+
+// *********** Expectation *************
 
 function Expectation (spec, options) {
   this.specification = spec;
@@ -233,7 +339,8 @@ function Expectation (spec, options) {
   // Optional fields:
   this.thunk = undefined;
   this.code = undefined;
-  enrich(this, options || {});
+  Object.assign(this, options || {});
+  spec.description.log_("Expectation: " + this.actual);
   // Internal fields:
   this.raisedException = false;
   this.exception = null;
@@ -242,9 +349,9 @@ function Expectation (spec, options) {
   this.runEndHook = false;
 }
 Expectation.prototype.run = function () {
-  this.beginHook();
+  run_hook(this, 'begin');
   // this.endHook() will be run just before Specification.endHook() or
-  // just before the next beginHook().
+  // just before the beginHook() of the next Specification.
   return this;
 };
 Expectation.prototype.beginHook = function () {
@@ -271,7 +378,7 @@ function mk_expect (spec) {
     var expectation = new Expectation(spec, {
         actual: actual
       });
-    enrich(expectation, options || {});
+    Object.assign(expectation, options || {});
     expectation.run();
     return expectation;
   };
@@ -315,7 +422,12 @@ Failure.prototype.toString = function () {
 // FUTURE: should not be used after endHook()
 
 function defineMatcher(name, fn) {
-    Expectation.prototype[name] = fn;
+    Expectation.prototype[name] =
+        function () {
+            var expectation = this;
+            expectation.specification.description.log_(name);
+            return fn.apply(expectation, arguments);
+        };
     fn.toString = function () {
         return name;
     };
@@ -328,7 +440,7 @@ defineMatcher('not', function (options) {
 
 defineMatcher('toBe', function (expected, options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || this.actual !== expected) {
       this.pass = false;
@@ -339,14 +451,14 @@ defineMatcher('toBe', function (expected, options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
 
 defineMatcher('toEqual', function (expected, options) {
     try {
-        enrich(this, options || {});
+        Object.assign(this, options || {});
         this.pass = true;
         if ( ! _.isEqual(this.actual, expected) ) {
             this.pass = false;
@@ -357,14 +469,14 @@ defineMatcher('toEqual', function (expected, options) {
             }
         }
     } finally {
-        this.matchHook();
+        run_hook(this, 'match');
     }
     return this;
 });
 
 defineMatcher('toBeDefined', function (options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || typeof this.actual === 'undefined' ) {
       this.pass = false;
@@ -374,14 +486,14 @@ defineMatcher('toBeDefined', function (options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
 
 defineMatcher('toBeUndefined', function (options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || typeof this.actual !== 'undefined' ) {
       this.pass = false;
@@ -391,14 +503,14 @@ defineMatcher('toBeUndefined', function (options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
 
 defineMatcher('toBeNull', function (options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || this.actual !== null ) {
       this.pass = false;
@@ -408,14 +520,14 @@ defineMatcher('toBeNull', function (options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
 
 defineMatcher('toBeNaN', function (options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || this.actual === this.actual ) {
       this.pass = false;
@@ -425,14 +537,14 @@ defineMatcher('toBeNaN', function (options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
 
 defineMatcher('toBeTruthy', function (options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || !this.actual) {
       this.pass = false;
@@ -442,14 +554,14 @@ defineMatcher('toBeTruthy', function (options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
 
 defineMatcher('toBeFalsy', function (options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || !!this.actual) {
       this.pass = false;
@@ -459,7 +571,7 @@ defineMatcher('toBeFalsy', function (options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
@@ -470,7 +582,7 @@ defineMatcher('toContain', function (expected, options) {
 
 defineMatcher('toBeLessThan', function (expected, options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || this.actual >= expected) {
       this.pass = false;
@@ -480,14 +592,14 @@ defineMatcher('toBeLessThan', function (expected, options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
 
 defineMatcher('toBeGreaterThan', function (expected, options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || this.actual <= expected) {
       this.pass = false;
@@ -497,7 +609,7 @@ defineMatcher('toBeGreaterThan', function (expected, options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
@@ -508,7 +620,7 @@ defineMatcher('toBeCloseTo', function (expected, precision, options) {
       precision = precision || 2;
     }
     var delta = (Math.pow(10, -precision) / 2);
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || Math.abs(this.actual -expected) > delta) {
       this.pass = false;
@@ -518,14 +630,14 @@ defineMatcher('toBeCloseTo', function (expected, precision, options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
 
 defineMatcher('toMatch', function (regexp, options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     this.pass = true;
     regexp = new RegExp(regexp); // Check regexp
     if (this.raisedException || ! regexp.test(this.actual.toString())) {
@@ -536,14 +648,14 @@ defineMatcher('toMatch', function (regexp, options) {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
 
 defineMatcher('toBeFunction', function (options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
     if ( typeof(this.actual) === 'function' ||
          this.actual instanceof Function ) {
       this.pass = true;
@@ -554,14 +666,14 @@ defineMatcher('toBeFunction', function (options) {
       throw "Not a function " + this.actual;
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
 
 defineMatcher('toBeA', function (className, options) {
   try {
-    enrich(this, options || {});
+    Object.assign(this, options || {});
       this.pass = false;
     if ( typeof(this.actual) === 'object' ) {
         if ( this.actual.constructor === className ) {
@@ -572,7 +684,7 @@ defineMatcher('toBeA', function (className, options) {
         throw "Not an instance of " + className;
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
@@ -586,7 +698,7 @@ defineMatcher('invoke', function () {
     this.exception = exc;
     this.raisedException = true;
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
@@ -603,7 +715,7 @@ defineMatcher('toThrow', function () {
       }
     }
   } finally {
-    this.matchHook();
+    run_hook(this, 'match');
   }
   return this;
 });
@@ -621,7 +733,7 @@ defineMatcher('eval', function () {
       throw exc;
     }
   } finally {
-      this.matchHook();
+      run_hook(this, 'match');
   }
   return this;
 });
@@ -629,7 +741,7 @@ defineMatcher('eval', function () {
 // Specific matcher telling that no more matchers will be applied on
 // the current expectation. This triggers the expectation endHook sooner.
 Expectation.prototype.done = function () {
-  this.endHook();
+  run_hook(this, 'end');
 };
 
 // NOTA provide immutable front_* function to be a relay to a mutable one:
