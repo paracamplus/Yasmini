@@ -26,7 +26,7 @@ jshint :
 
 # ############## NPM package
 
-publish : clean jshint
+publish : clean 
 	git status .
 	-git commit -m "NPM publication `date`" .
 	git push
