@@ -4,7 +4,7 @@ Yasmini is a light framework inspired by Jasmine. It was written for
 CodeGradX, an infrastructure for mechanically grading programs.
 Yasmini is a framework to help grading Javascript programs.
 
-Grading programs is supported by unit testing however rather than being
+Grading programs is supported by unit testing however, rather than being
 strictly binary (tests pass all or fail), CodeGradX has to deliver a grade
 that tries to be faithful to the amount of successful tests. In order to
 avoid cheating, we also don't want to reveal the answers of the failed tests;
@@ -17,6 +17,11 @@ Jasmine but I also wanted the same code to be used for my own tests and for
 grading students' programs. To achieve this, the amount of patches was too
 big and probably too dependent of the precise version of Jasmine so I decided
 to write my own framework. The name Yasmini stands for a mini-Jasmine.
+
+Version 0.1.x only supports synchronous tests, version 0.2.x supports
+asynchrounous tests. However, due to the implementation, the
+evaluation model of descriptions and specifications is modified and
+not compatible: for more details see below.
 
 ## Synopsis
 
@@ -35,27 +40,28 @@ var d1 = describe("some program", function () {
   }, { // options
         stopOnFailure: true
   });
-  expect(it1.expectationAttempted).toBe(it1.expectationSuccessful);
 }, { // options
       verbose: true
+}).hence(function (d1) {
+  expect(it1.expectationAttempted).toBe(it1.expectationSuccessful);
 });
 ```
 
-As seen in the previous example and using Jasmine words,
-description, specification and expectation are objects that are
-accessible and inspectable: a reflexive feature.
-When built, their constructor admit an optional last parameter to set
-some options.
+As seen in the previous example and using Jasmine words, description,
+specification and expectation are objects that are accessible and
+inspectable: a reflexive feature. When built, their constructor admit
+an optional last parameter to set some options.
 
 By default, there is no verbalization of the tests.
 
 ## Usage
 
 Yasmini is directly inspired by Jasmine however Yasmini is far from
-implementing all of Jasmine: Yasmini lacks a number of Matchers and does
-not (yet) support tests of callbacks. Yasmini is much simpler and
-offers other features that I found useful. So first, if you want to use
-Yasmini, look at Jasmine documentation on http://jasmine.github.io/
+implementing all of Jasmine: Yasmini lacks a number of Matchers but
+does now (from version 0.2.x) support tests of callbacks. Yasmini is
+much simpler and offers other features that I found useful. So first,
+if you want to use Yasmini, look at Jasmine documentation on
+http://jasmine.github.io/
 
 One very important feature of Yasmini is that whenever an expectation is
 begun, checked, finished or a specification or a description the counters
@@ -76,39 +82,44 @@ npm install -g yasmini
 
 This is a common way to require Yasmini, make the three fundamental
 functions (`describe`, `it` and `expect`) available and enrich Yasmini with
-a verbalizer (you are free to code yours).
+a verbalizer (you are free to code your own verbalizer).
 
 ```javascript
 var yasmini = require('yasmini');
 var describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect;
-yasmini.load('..../yasmini/example/verbalizer.js', {myfunction: myfunction});
-```
 
-Alternatively to `load`, you may also `require` these additional modules:
-
-```javascript
 require('yasmini/example/verbalizer');
 ```
 
-Yasmini also exports some classes so you may write your own hooks.
+Yasmini also exports some classes so you may write your own hooks
+with
+
+```javascript
+yasmini.class.Description
+yasmini.class.Specification
+yasmini.class.Expectation
+yasmini.class.Failure
+```
+
 
 ### Description
 
 Tests are written within a Description. The first two arguments (the
-message and the behavior) are mandatory. The optional third argument sets
-some options on the Description objects.
-All options are optional, their default value is shown below:
+message and the behavior) are mandatory. The optional third argument
+sets some options on the Description objects. All options are
+optional, their default value is shown in this typical example below
 
 ```javascript
-var d = describe("message", function () {
+describe("message", function () {
   // write Specifications here...
 }, {
   verbose: false,
   specificationIntended: undefined
+}).hence(function (description) {
+  // do something with description.someField
 });
-// do something with d.someField
 ```
 
 The `verbose` option specifies verbosity. Its only purpose is to be inherited
@@ -117,9 +128,9 @@ by default, by specifications.
 The `specificationIntended` if set, specifies how many specifications should
 be run within the description.
 
-The `describe` function creates a `Description` instance,
-runs the `beginHook` method then runs the function
-given as second argument. After running that function, the `endHook`
+The `describe` function creates a `Description` instance, runs the
+`beginHook` method then runs the function given as second argument.
+After running that function (and all its consequences), the `endHook`
 is run and the description will hold the following fields:
 
 * `specifications` the array of inner Specifications
@@ -132,11 +143,17 @@ is run and the description will hold the following fields:
   if `specificationIntended` is specified then it should be equal to
    `specificationAttempted` and to `specificationSuccessful`.
 
+Since inner specifications may contain asynchronous code and to be
+sure that the description is fulfilled, you should use the `hence`
+method. The `describe` function returns a kind of Promise and `hence`
+behaves as the usual `then` method.
+
 ### Specification
 
-Within a description are written specifications created by the `it` function.
-The first two arguments (message and behavior) are mandatory. The last one
-sets options with default shown below:
+Within a description are written specifications created by the `it`
+function. The first two arguments (message and behavior) are
+mandatory. The last one can take two forms. Or it sets options with
+default shown below:
 
 ```javascript
 var s = it("message", function () {
@@ -144,10 +161,15 @@ var s = it("message", function () {
 }, {
   verbose: d.verbose, // inherited
   stopOnFailure: false,
-  expectationIntended: 6
+  expectationIntended: 6,
+  timeout: 5*1000    // 5 seconds
 });
-// do something with s.someField
+// do something with some but not all s.someField
+// you have to wait for the end of the specification!
 ```
+
+Or (by compatibility with Jasmine) the last argument is a number of
+milliseconds that limits the duration of the expectation.
 
 The `verbose` option specifies verbosity. By default, it is inherited
 from the enclosing description. Its only purpose is to be inherited
@@ -159,11 +181,14 @@ be run within the specification.
 The `stopOnFailure` if true requires `it` to exit as soon as an expectation
 is not met.
 
-The `it` function creates an `Specification` instance and runs immediately
-the `beginHook` method and its behavior. When the behavior terminates,
-the `endHook` method of all inner expectations are run then, the
-`endHook` method of the specification instance is run and eventually
-holds a number of fields:
+The `it` function creates a `Specification` instance and stores it in
+the surrounding Description. Specifications are not run immediately,
+they are evaluated at the end of the body of the Description.
+
+When run, the specification will invoke the `beginHook` method and its
+behavior. When the behavior terminates, the `endHook` method of all
+inner expectations are run then, the `endHook` method of the
+specification instance is run and eventually holds a number of fields:
 
 * `expectations` an array of expectations
 * `description` is the enclosing `Description` instance
@@ -194,11 +219,12 @@ expect(function).invoke(values...)...
 expect(actual).done();
 
 // More complex example:
-expect(something, {
+var e = expect(something, {
   stopOnFailure: s.stopOnFailure,
   verbose: s.verbose,
   code: "string"
 }).eval().invoke(1, 2, 3).toBeTruthy().toBe(something).done();
+// do something with e.someField
 ```
 
 First the arguments are computed and given to the `expect` function. An
@@ -231,6 +257,12 @@ first argument (say the `actual`) may be a string, a function or anything.
 When the `matchHook` method is run, the Expectation instance holds a
 number of fields as listed above though some further matchers may
 alter the content of these fields.
+
+The `done` method of an Expectation is optional, it only runs
+immediately `endHook` meaning that the Expectation is finished. If
+you do not use `done` then `endHook` will be run by the
+enclosing Specification. This method is so useless that it might become
+deprecated.
 
 ### Matchers
 
@@ -274,25 +306,36 @@ the failed expectation, a `matcher` property with the failed matcher and
 an `args` property with the arguments of the failed matcher.
 
 Caution: Jasmine offers some matchers that are not yet present in Yasmini:
-some of them are `not`, `toContain`, `toEqual`.
+some of them are `not`, `toContain`.
+
+# Asynchronous code
+
+You may have asynchronous tests to perform. Below is the usual synopsis:
+
+```javascript
+describe("some asynchronous code", function () {
+  it("should start", function (done) {
+    startSomeAsynchronousCode(..., function (err, data) {
+       if (err) {
+         fail(err);
+       } else {
+         expect(data).toBe(...);
+         done();
+       }});
+  }, 5*1000);
+}).hence(function (desc) {
+    // check, for instance, desc.specifications[0].pass 
+});
+```
+
+Observe that the behavior of `it()` now takes a callback named `done`.
+You have to invoke it when the test is complete.
 
 # Adjunctions
 
-The file `yasmini-verbalize.js` is an example of an adjunction to Yasmini.
+The file `example/verbalizer.js` is an example of an adjunction to Yasmini.
 It verbalizes in French the results of the tests. Defining `beginHook` and
 `endHook` on `Description`, `Specification` and `Expectation` does the trick.
-
-Adjunctions files must be stored aside the `yasmini.js` file that is,
-in the same directory, and are loaded with the `yasmini.load` function
-(which provides the `yasmini` global variable). It is possible to
-provide a second argument defining bindings for the adjoined file.
-
-Feel free to write your own adjunctions and share them!
-
-# Examples
-
-The `spec/ytests.js` is a test file written for Yasmini. It cannot
-be processed by Jasmine.
 
 The `example/verbalize` module is a simple verbalizer that
 displays description messages, specification messages followed by
@@ -310,3 +353,10 @@ of Description instances. It is up to you to display them.
 
 The `codegradx/verbalizer` is a more elaborate verbalizer to
 be used with the CodeGradX infrastructure.
+
+Feel free to write your own adjunctions and share them!
+
+# Examples
+
+The `spec/ytests.js` and `spec/ytestfact.js` are test files written
+for Yasmini. They cannot be processed by Jasmine.
