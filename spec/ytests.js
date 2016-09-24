@@ -8,7 +8,7 @@ var describe = yasmini.describe,
     expect   = yasmini.expect,
     fail     = yasmini.fail;
 
-var d1 = describe("some program", function () {
+describe("some program", function () {
   var e1, e3;
   var it1 = it("should run this entirely", function () {
     e1 = expect('2+2').eval().toBe(4);
@@ -29,7 +29,7 @@ var d1 = describe("some program", function () {
         stopOnFailure: true,
         expectationIntended: 3
   });
-  console.log(it1);//DEBUG
+  //console.log(it1);//DEBUG
   var it2 = it("should check previous specification", function () {
     var verbs = e1.specification.description.verbalization;
     expect(verbs.length).toBe(19);
@@ -55,10 +55,10 @@ var d1 = describe("some program", function () {
 }, { // options for description
       verbose: true,
       specificationIntended: 3
+}).hence(function (d1) {
+    console.log(d1);
+    console.log(d1.verbalization);
+    if ( ! d1.pass ) {
+        process.exitCode = 1;
+    }
 });
-
-console.log(d1);
-console.log(d1.verbalization);
-if ( ! d1.pass ) {
-  process.exitCode = 1;
-}

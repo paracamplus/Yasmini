@@ -640,6 +640,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
                   fin = true;
                   ydone();
               }
+              // longer than the timeout for Jasmine:
               setTimeout(finished, 5500); // 5.5 seconds
               yasmini.expect(fin).toBeFalsy();
           }, 1000 ); // 1 second
@@ -659,6 +660,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
                   fin = true;
                   ydone();
               }
+              // shorter than the timeout for Jasmine:
               setTimeout(finished, 2500); // 2.5 seconds
               yasmini.expect(fin).toBeFalsy();
           }, 1000 ); // 1 second
