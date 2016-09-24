@@ -69,12 +69,13 @@ function run_hook (o, name) {
 // *********** Description *************
 
 function Description (msg, f, options) {
+  // Static fields:
   this.message = msg;
   this.behavior = f;
   this.verbose = false;
   this.specificationIntended = undefined;
   Object.assign(this, options || {});
-  // Internal fields:
+  // Internal (dynamic) fields:
   this.specifications = [];
   this.result = undefined;
   this.raisedException = false;
@@ -195,6 +196,7 @@ function describe (msg, f, options) {
 // *********** Specification *************
 
 function Specification (description, msg, f, options) {
+  // Static fields:
   this.description = description;
   description.log_("Specification: " + msg);
   description.specifications.push(this);
@@ -204,7 +206,7 @@ function Specification (description, msg, f, options) {
   this.expectationIntended = undefined;
   this.verbose = description.verbose;
   Object.assign(this, options || {});
-  // Internal fields:
+  // Internal (dynamic) fields:
   this.expectations = [];
   this.result = undefined;
   this.raisedException = false;
@@ -332,6 +334,7 @@ function mk_it (description) {
 // *********** Expectation *************
 
 function Expectation (spec, options) {
+  // Static fields:
   this.specification = spec;
   spec.expectations.push(this);
   this.stopOnFailure = spec.stopOnFailure;
@@ -341,7 +344,7 @@ function Expectation (spec, options) {
   this.code = undefined;
   Object.assign(this, options || {});
   spec.description.log_("Expectation: " + this.actual);
-  // Internal fields:
+  // Internal (dynamic) fields:
   this.raisedException = false;
   this.exception = null;
   this.pass = false;

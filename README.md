@@ -19,7 +19,7 @@ big and probably too dependent of the precise version of Jasmine so I decided
 to write my own framework. The name Yasmini stands for a mini-Jasmine.
 
 Version 0.1.x only supports synchronous tests, version 0.2.x supports
-asynchrounous tests. However, due to the implementation, the
+asynchrounous tests. However, due to the new implementation, the
 evaluation model of descriptions and specifications is modified and
 not compatible: for more details see below.
 
@@ -30,6 +30,14 @@ var yasmini = require('yasmini');
 var describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect;
+
+describe("some program", function () {
+  it("should run this", function () {
+    expect(2+2).toBe(4);
+  });
+});
+
+// And if you prefer full control:
 
 var d1 = describe("some program", function () {
   var it1 = it("should run this", function () {
@@ -74,15 +82,19 @@ waits indefinitely!
 
 ### Installation
 
+As usual. Option `-g` means that the installation is global.
+
 ```sh
 npm install -g yasmini
 ```
 
 ### Introduction
 
-This is a common way to require Yasmini, make the three fundamental
-functions (`describe`, `it` and `expect`) available and enrich Yasmini with
-a verbalizer (you are free to code your own verbalizer).
+The common way is to require Yasmini:
+- make the three fundamental functions (`describe`, `it` and `expect`)
+  available
+- and enrich Yasmini with a verbalizer (you are free to code your
+  own verbalizer).
 
 ```javascript
 var yasmini = require('yasmini');
@@ -108,7 +120,7 @@ yasmini.class.Failure
 
 Tests are written within a Description. The first two arguments (the
 message and the behavior) are mandatory. The optional third argument
-sets some options on the Description objects. All options are
+sets some options on the Description object. All options are, well,
 optional, their default value is shown in this typical example below
 
 ```javascript
@@ -122,16 +134,16 @@ describe("message", function () {
 });
 ```
 
-The `verbose` option specifies verbosity. Its only purpose is to be inherited
-by default, by specifications.
+The `verbose` option specifies verbosity. Its only purpose is to be
+inherited, by default, by specifications.
 
-The `specificationIntended` if set, specifies how many specifications should
-be run within the description.
+The `specificationIntended` if set, specifies how many specifications
+should be run within the description.
 
 The `describe` function creates a `Description` instance, runs the
 `beginHook` method then runs the function given as second argument.
 After running that function (and all its consequences), the `endHook`
-is run and the description will hold the following fields:
+method is run and the description will hold the following fields:
 
 * `specifications` the array of inner Specifications
 * `raisedException` a boolean telling if the behavior was exited
@@ -169,7 +181,9 @@ var s = it("message", function () {
 ```
 
 Or (by compatibility with Jasmine) the last argument is a number of
-milliseconds that limits the duration of the expectation.
+milliseconds that limits the duration of the expectation. This number
+corresponds to the `timeout` option and, by default, is set to 5
+seconds.
 
 The `verbose` option specifies verbosity. By default, it is inherited
 from the enclosing description. Its only purpose is to be inherited
@@ -178,12 +192,40 @@ by default, by inner expectations.
 The `expectationIntended` if set, specifies how many expectations should
 be run within the specification.
 
-The `stopOnFailure` if true requires `it` to exit as soon as an expectation
-is not met.
+The `stopOnFailure` if true requires `it` to exit as soon as one
+expectation is not met.
 
 The `it` function creates a `Specification` instance and stores it in
 the surrounding Description. Specifications are not run immediately,
-they are evaluated at the end of the body of the Description.
+they are evaluated at the end of the body of the Description. This
+order of evaluation may puzzle you. The next example shows the order
+of evaluation (you may also look at the `description.log` that lists
+the internal events of the process): it prints `1, 2, 3, 4, 5`.
+
+```javascript
+describe("evaluation order", function () {
+  console.log(1);
+  var it1 = it("specification A", function () {
+      console.log(3);
+      var e1 = expect(3+1).toBe(4);
+      // all properties of e1 are available here
+  });
+  // Only static properties of it1 available here
+  console.log(2);
+  it("specification B", function () {
+      // All properties of it1 available here
+      console.log(4);
+      expect(...)...
+  });
+}).hence(function (description) {
+   // All properties of all specifications available here.
+   // The complete description.log can also be inquired.
+   // The variable `it1` and `e1` are just present to name objects.
+   // since it1 ==== description.specifications[0]
+   //   and e1 === it1.expectations[0]
+   console.log(5);
+});
+```
 
 When run, the specification will invoke the `beginHook` method and its
 behavior. When the behavior terminates, the `endHook` method of all
@@ -358,5 +400,11 @@ Feel free to write your own adjunctions and share them!
 
 # Examples
 
-The `spec/ytests.js` and `spec/ytestfact.js` are test files written
-for Yasmini. They cannot be processed by Jasmine.
+There are some Yasmini test files named `spec/ytest*.js`. They cannot
+be processed by Jasmine.
+
+# Fine points
+
+Since hooks are your own functions they may throw exceptions. If the
+`xHook` method raises an exception then that exception will be stored
+in the `xHookException` property.

@@ -18,6 +18,7 @@ test.with.yasmini :
 	cd spec/ && ln -sf ../node_modules .
 	node spec/ytests.js
 	node spec/ytestfact.js
+	node spec/ytestserver.js
 
 # ############## NPM package
 
