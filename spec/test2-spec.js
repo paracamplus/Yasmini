@@ -241,7 +241,7 @@ describe("Yasmini library: a light Jasmine framework", function () {
           var error = it1.exception;
           expect(error.expectation).toBe(it1.expectations[0]);
           expect(error.expectation.actual).toBe(41);
-          expect(error.matcher.toString()).toBe('toBe');
+          expect(error.matcherName).toBe('toBe');
           //console.log(error.toString());
           expect(error.toString()).toMatch(/expect\(41\).toBe/);
           expect(error.args[0]).toBe('euh');

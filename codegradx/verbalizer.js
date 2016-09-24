@@ -24,10 +24,7 @@ in order to verbalize what happens during the tests.
 
 */
 
-var fs = require('fs');
-var path = require('path');
-var vm = require('vm');
-var yasmini = require('yasmini/codegradx/marker');
+let yasmini = require('yasmini/codegradx/marker');
 module.exports = yasmini;
 require('yasmini/codegradx/marker');
 
@@ -39,9 +36,9 @@ yasmini.class.Expectation.prototype.beginHook = function () {
     }
     this.alreadyShownTest = false;
     // Run the endHook of the previous expectation if any:
-    var n = this.specification.expectations.length;
+    let n = this.specification.expectations.length;
     if ( n > 1 ) {
-        var previousExpectation = this.specification.expectations[n-2];
+        let previousExpectation = this.specification.expectations[n-2];
         previousExpectation.endHook();
     }
     this.update_();
@@ -88,7 +85,7 @@ yasmini.class.Expectation.prototype.endHook = function () {
 };
 
 yasmini.class.Specification.prototype.beginHook = function () {
-    var msg = this.message;
+    let msg = this.message;
     yasmini.verbalize('+', msg);
     this.update_();
     yasmini.printPartialResults_();
@@ -107,16 +104,16 @@ yasmini.class.Specification.prototype.endHook = function () {
         msg = "- " + yasmini.messagefn(
             'partialSuccess',
             this.expectationSuccessful,
-            (this.expectationIntended ?
-             this.expectationIntended :
-             this.expectationAttempted ));
+            this.expectationIntended ?
+                this.expectationIntended :
+                this.expectationAttempted );
     }
     yasmini.verbalize(msg);
 };
 
 yasmini.class.Description.prototype.beginHook = function () {
     yasmini.config.descriptions.push(this);
-    var msg = yasmini.messagefn('checkFunction', this.message);
+    let msg = yasmini.messagefn('checkFunction', this.message);
     yasmini.verbalize("+", msg);
     this.update_();
     yasmini.printPartialResults_();

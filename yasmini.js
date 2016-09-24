@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2015 Christian.Queinnec@CodeGradX.org
+Copyright (C) 2016 Christian.Queinnec@CodeGradX.org
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -18,33 +18,14 @@ See https://github.com/paracamplus/Yasmini.git
 */
 
 // Require some node.js modules:
-var vm = require('vm');
-var path = require('path');
-var fs = require('fs');
-var util = require('util');
-var _ = require('lodash');
+let vm = require('vm');
+let path = require('path');
+let fs = require('fs');
+let util = require('util');
+let _ = require('lodash');
 var Promise = require('bluebird');
 
-/*
-* Load utility. The utility file should be stored aside yasmini.js
-* that is, in the same directory. The file is loaded in its own context
-* optionally enriched by some bindings.
-*/
-
-function load (filename, bindings) {
-  var f = path.join(__dirname, filename);
-  var src = fs.readFileSync(f);
-  var newglobal = {
-    yasmini: module.exports,
-    require: require,
-    console: console
-  };
-  newglobal = Object.assign(newglobal, bindings || {});
-  vm.runInNewContext(src, newglobal);
-  module.exports.plugins.push(filename);
-}
-
-var message = {
+let message = {
     fr: {
         notwithinit: "Ne doit être utilisé que dans it()",
         notwithindescribe: "Ne doit être utilisé que dans describe()"
@@ -55,8 +36,52 @@ var message = {
     }
 };
 
+// NOTA provide immutable front_* function to be a relay to a mutable one:
+function wrong_it (msg, f) {
+  throw message[yasmini.lang || 'en'].notwithindescribe + msg + f;
+}
+var inner_it = wrong_it;
+function front_it () {
+  return inner_it.apply(this, arguments);
+}
+
+function wrong_expect (actual) {
+  throw message[yasmini.lang || 'en'].notwithinit + actual;
+}
+var inner_expect = wrong_expect;
+function front_expect () {
+  return inner_expect.apply(this, arguments);
+}
+
+function wrong_fail () {
+    throw message[yasmini.lang || 'en'].notwithinit;
+}
+var inner_fail = wrong_fail;
+function front_fail () {
+    return inner_fail.apply(this, arguments);
+}
+
+/*
+* Load utility. The utility file should be stored aside yasmini.js
+* that is, in the same directory. The file is loaded in its own context
+* optionally enriched by some bindings.
+*/
+
+function load (filename, bindings) {
+  let f = path.join(__dirname, filename);
+  let src = fs.readFileSync(f);
+  let newglobal = {
+    yasmini: module.exports,
+    require: require,
+    console: console
+  };
+  newglobal = Object.assign(newglobal, bindings || {});
+  vm.runInNewContext(src, newglobal);
+  module.exports.plugins.push(filename);
+}
+
 function run_hook (o, name) {
-    var method = o[name + 'Hook'];
+    let method = o[name + 'Hook'];
     if ( method ) {
         try {
             method.call(o);
@@ -88,9 +113,9 @@ function Description (msg, f, options) {
   this.log = [];
 }
 Description.prototype.run = function () {
-    var description = this;
+    let description = this;
     description.log_("Description run");
-    var promise = new Promise(function (resolve, reject) {
+    let promise = new Promise(function (resolve /*, reject */) {
         try {
             description.log_("Description run Promise");
             description.result = description.behavior.call(description);
@@ -110,14 +135,14 @@ Description.prototype.run = function () {
 };
 Description.prototype.log_ = function (msg) {
     this.log.push([ process.uptime(), msg]);
-}
+};
 Description.prototype.run_specifications = function () {
-    var description = this;
+    let description = this;
     description.log_("Description run_specifications");
     function run_specification (i) {
         if ( i < description.specifications.length ) {
             description.log_("Description run_specification " + i);
-            var spec = description.specifications[i];
+            let spec = description.specifications[i];
             return spec.run()
                 .finally(function () {
                     description.log_("Description run_specification finally");
@@ -145,7 +170,7 @@ Description.prototype.endHook = function () {
   return this;
 };
 Description.prototype.update_ = function () {
-    var description = this;
+    let description = this;
     description.log_("Description update_");
     description.pass = true;
     // Recompute specificationSuccessful:
@@ -165,7 +190,7 @@ Description.prototype.update_ = function () {
     description.specifications.forEach(isPassed);
     // check intended versus attempted:
     if ( description.specificationIntended &&
-         description.specificationAttempted !=
+         description.specificationAttempted !==
          description.specificationIntended ) {
         description.pass = false;
     }
@@ -173,7 +198,7 @@ Description.prototype.update_ = function () {
 };
 
 function describe (msg, f, options) {
-    var description = new Description(msg, f, options);
+    let description = new Description(msg, f, options);
     description.log_("describe " + msg);
     run_hook(description, 'begin');
     inner_it = mk_it(description);
@@ -216,13 +241,13 @@ function Specification (description, msg, f, options) {
   this.pass = false;
 }
 Specification.prototype.run = function () {
-    var spec = this;
+    let spec = this;
     run_hook(spec, 'begin');
-    var description = spec.description;
+    let description = spec.description;
     description.log_("Specification run");
     description.specificationAttempted++;
     description.log_("Specification run start");
-    var donePromise = new Promise(function (resolve, reject) {
+    let donePromise = new Promise(function (resolve, reject) {
         inner_expect = mk_expect(spec);
         inner_fail = mk_fail(spec);
         // spec.done true means that the promise is fullfilled!
@@ -236,11 +261,11 @@ Specification.prototype.run = function () {
                 spec.done = true;
                 resolve(spec.result);
             } else {
-                function done () {
+                let done = function done () {
                     description.log_("Specification run start done");
                     spec.done = true;
                     resolve(spec.result);
-                }
+                };
                 description.log_("Specification run start try>0");
                 spec.result = spec.behavior.call(spec, done);
                 description.log_("Specification run start try>0 end");
@@ -253,7 +278,7 @@ Specification.prototype.run = function () {
             reject(exc);
         }
     });
-    var delayedPromise = new Promise(function (resolve, reject) {
+    let delayedPromise = new Promise(function (resolve, reject) {
         setTimeout(function () {
             description.log_("Specification run start delayedPromise");
             if ( ! spec.done ) {
@@ -270,7 +295,7 @@ Specification.prototype.run = function () {
               spec.pass = false;
           }
       })
-      .finally(function (result) {
+      .finally(function () {
           description.log_("Specification run finally");
           inner_expect = wrong_expect;
           inner_fail = wrong_fail;
@@ -293,7 +318,7 @@ Specification.prototype.endHook = function () {
   return this;
 };
 Specification.prototype.update_ = function () {
-  var spec = this;
+  let spec = this;
   spec.description.log_("Specification update_");
   spec.pass = true;
   // recompute expectationSuccessful:
@@ -308,7 +333,7 @@ Specification.prototype.update_ = function () {
   }, spec);
   // Check intended versus attempted:
   if ( spec.expectationIntended &&
-    spec.expectationIntended != spec.expectationAttempted ) {
+    spec.expectationIntended !== spec.expectationAttempted ) {
       spec.pass = false;
     }
     // propagate to description:
@@ -317,15 +342,15 @@ Specification.prototype.update_ = function () {
   };
 
 function mk_it (description) {
-    var newit = function (msg, f, options) {
+    let newit = function (msg, f, options) {
         if ( options && _.isNumber(options) ) {
             options = {timeout: options};
         } else if ( options && _.isObject(options) ) {
-            options = Object.assign({timeout: (4.75*1000)}, options);
+            options = Object.assign({timeout: 4.75*1000}, options);
         } else {
             options = {timeout: 4.75*1000};
         }
-        var spec = new Specification(description, msg, f, options);
+        let spec = new Specification(description, msg, f, options);
         return spec;
     };
     return newit;
@@ -377,8 +402,8 @@ Expectation.prototype.update_ = function () {
 };
 
 function mk_expect (spec) {
-  var new_expect = function (actual, options) {
-    var expectation = new Expectation(spec, {
+  let new_expect = function (actual, options) {
+    let expectation = new Expectation(spec, {
         actual: actual
       });
     Object.assign(expectation, options || {});
@@ -389,27 +414,31 @@ function mk_expect (spec) {
 }
 
 function mk_fail (spec) {
-    var new_fail = function (msg) {
-        var failure = new Failure(null, [msg]);
+    let new_fail = function (msg) {
+        let failure = new Failure(spec, null, null, [msg]);
         throw failure;
     };
     return new_fail;
 }
 
-function Failure (expectation, args) {
+function Failure (specification, expectation, matcherName, args) {
+    this.specification = specification;
     this.expectation = expectation;
-    this.matcher = args.callee;
+    this.matcherName = matcherName;
     this.args = args;
 }
 Object.setPrototypeOf(Failure.prototype, Error.prototype);
 
 Failure.prototype.toString = function () {
-    var it = this.expectation;
-    var msg = "Failure";
-    if ( it && it.actual && this.matcher ) {
+    let msg = "Failure";
+    let it = this.expectation;
+    if ( it && it.actual && this.matcherName ) {
         msg += " on expect(" +
             it.actual + ').' +
-            this.matcher.toString() + '(...)';
+            this.matcherName + '(...)';
+    } else if ( this.matcherName ) {
+        msg += " on ." +
+            this.matcherName + '(...)';
     }
     if ( it.exception ) {
         if ( it.raisedException ) {
@@ -419,7 +448,7 @@ Failure.prototype.toString = function () {
         }
     }
     return msg;
-}
+};
 
 // Matchers
 // FUTURE: should not be used after endHook()
@@ -427,7 +456,7 @@ Failure.prototype.toString = function () {
 function defineMatcher(name, fn) {
     Expectation.prototype[name] =
         function () {
-            var expectation = this;
+            let expectation = this;
             expectation.specification.description.log_(name);
             return fn.apply(expectation, arguments);
         };
@@ -438,7 +467,8 @@ function defineMatcher(name, fn) {
 
 // not
 defineMatcher('not', function (options) {
-    throw new Failure(this, "not yet implemented");
+    options = options; // just to make jshint happy!
+    throw new Failure(this.specification, this, 'not', "not yet implemented");
 });
 
 defineMatcher('toBe', function (expected, options) {
@@ -448,8 +478,9 @@ defineMatcher('toBe', function (expected, options) {
     if (this.raisedException || this.actual !== expected) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = this.raisedException ?
-            this.exception : new Failure(this, arguments);
+        let exc = this.raisedException ?
+            this.exception : new Failure(
+                this.specification, this, 'toBe', arguments);
         throw exc;
       }
     }
@@ -466,8 +497,9 @@ defineMatcher('toEqual', function (expected, options) {
         if ( ! _.isEqual(this.actual, expected) ) {
             this.pass = false;
             if ( this.stopOnFailure ) {
-                var exc = this.raisedException ?
-                    this.exception : new Failure(this, arguments);
+                let exc = this.raisedException ?
+                    this.exception : new Failure(
+                        this.specification, this, 'toEqual', arguments);
                 throw exc;
             }
         }
@@ -484,7 +516,8 @@ defineMatcher('toBeDefined', function (options) {
     if (this.raisedException || typeof this.actual === 'undefined' ) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(
+            this.specification, this, 'toBeDefined', arguments);
         throw exc;
       }
     }
@@ -501,7 +534,8 @@ defineMatcher('toBeUndefined', function (options) {
     if (this.raisedException || typeof this.actual !== 'undefined' ) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(
+            this.specification, this, 'toBeUndefined', arguments);
         throw exc;
       }
     }
@@ -518,7 +552,8 @@ defineMatcher('toBeNull', function (options) {
     if (this.raisedException || this.actual !== null ) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(
+            this.specification, this, 'toBeNull', arguments);
         throw exc;
       }
     }
@@ -535,7 +570,8 @@ defineMatcher('toBeNaN', function (options) {
     if (this.raisedException || this.actual === this.actual ) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(
+            this.specification, this, 'toBeNaN', arguments);
         throw exc;
       }
     }
@@ -552,7 +588,8 @@ defineMatcher('toBeTruthy', function (options) {
     if (this.raisedException || !this.actual) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(
+            this.specification, this, 'toBeTruthy', arguments);
         throw exc;
       }
     }
@@ -569,7 +606,8 @@ defineMatcher('toBeFalsy', function (options) {
     if (this.raisedException || !!this.actual) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(
+            this.specification, this, 'toBeFalsy', arguments);
         throw exc;
       }
     }
@@ -580,7 +618,10 @@ defineMatcher('toBeFalsy', function (options) {
 });
 
 defineMatcher('toContain', function (expected, options) {
-    throw new Failure(this, "not yet implemented");
+    options = options;   // just to make jshint happy!
+    expected = expected; // just to make jshint happy!
+    throw new Failure(
+        this.specification, this, 'toContain', "not yet implemented");
 });
 
 defineMatcher('toBeLessThan', function (expected, options) {
@@ -590,7 +631,8 @@ defineMatcher('toBeLessThan', function (expected, options) {
     if (this.raisedException || this.actual >= expected) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(
+            this.specification, this, 'toBeLessThan', arguments);
         throw exc;
       }
     }
@@ -607,7 +649,8 @@ defineMatcher('toBeGreaterThan', function (expected, options) {
     if (this.raisedException || this.actual <= expected) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(
+            this.specification, this, 'toBeGreaterThan', arguments);
         throw exc;
       }
     }
@@ -622,13 +665,14 @@ defineMatcher('toBeCloseTo', function (expected, precision, options) {
     if (precision !== 0) {
       precision = precision || 2;
     }
-    var delta = (Math.pow(10, -precision) / 2);
+      let delta = Math.pow(10, -precision) / 2;
     Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || Math.abs(this.actual -expected) > delta) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(
+            this.specification, this, 'toBeCloseTo', arguments);
         throw exc;
       }
     }
@@ -646,7 +690,8 @@ defineMatcher('toMatch', function (regexp, options) {
     if (this.raisedException || ! regexp.test(this.actual.toString())) {
       this.pass = false;
       if ( this.stopOnFailure ) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(
+            this.specification, this, 'toMatch', arguments);
         throw exc;
       }
     }
@@ -659,7 +704,7 @@ defineMatcher('toMatch', function (regexp, options) {
 defineMatcher('toBeFunction', function (options) {
   try {
     Object.assign(this, options || {});
-    if ( typeof(this.actual) === 'function' ||
+    if ( typeof this.actual === 'function' ||
          this.actual instanceof Function ) {
       this.pass = true;
     } else {
@@ -678,7 +723,7 @@ defineMatcher('toBeA', function (className, options) {
   try {
     Object.assign(this, options || {});
       this.pass = false;
-    if ( typeof(this.actual) === 'object' ) {
+    if ( typeof this.actual === 'object' ) {
         if ( this.actual.constructor === className ) {
             this.pass = true;
         }
@@ -713,7 +758,7 @@ defineMatcher('toThrow', function () {
     } else {
       this.pass = false;
       if (this.stopOnFailure) {
-        var exc = new Failure(this, arguments);
+        let exc = new Failure(this.specification, this, 'toThrow', arguments);
         throw exc;
       }
     }
@@ -746,31 +791,6 @@ defineMatcher('eval', function () {
 Expectation.prototype.done = function () {
   run_hook(this, 'end');
 };
-
-// NOTA provide immutable front_* function to be a relay to a mutable one:
-function wrong_it (msg, f) {
-  throw message[lang || 'en'].notwithindescribe + msg + f;
-}
-var inner_it = wrong_it;
-function front_it () {
-  return inner_it.apply(this, arguments);
-}
-
-function wrong_expect (actual) {
-  throw message[lang || 'en'].notwithinit + actual;
-}
-var inner_expect = wrong_expect;
-function front_expect () {
-  return inner_expect.apply(this, arguments);
-}
-
-function wrong_fail () {
-    throw message[lang || 'en'].notwithinit;
-}
-var inner_fail = wrong_fail;
-function front_fail () {
-    return inner_fail.apply(this, arguments);
-}
 
 module.exports = {
   describe: describe,

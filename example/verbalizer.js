@@ -25,8 +25,10 @@ bubbles up and finishes in Description.verbalization.
 
 */
 
-var yasmini = require('yasmini');
+let yasmini = require('yasmini');
 module.exports = yasmini;
+
+yasmini.lang = 'fr';
 
 yasmini.message = {
     fr: {
@@ -66,10 +68,10 @@ yasmini.message = {
 };
 
 yasmini.messagefn = function (key) {
-    var translator = yasmini.message[yasmini.lang || 'fr'];
+    let translator = yasmini.message[yasmini.lang];
     if ( translator ) {
-        var fn = translator[key];
-        var args = Array.prototype.slice.call(arguments, 1);
+        let fn = translator[key];
+        let args = Array.prototype.slice.call(arguments, 1);
         return fn.apply(null, args);
     } else {
         return JSON.stringify(arguments);
@@ -77,7 +79,7 @@ yasmini.messagefn = function (key) {
 };
 
 yasmini.class.Expectation.prototype.beginHook = function () {
-  var msg = "run beginHook on expectation #" + this.index;
+  let msg = "run beginHook on expectation #" + this.index;
   this.specification.description.verbalization.push(msg);
   this.alreadyShownTest = false;
 };
@@ -108,7 +110,7 @@ yasmini.class.Expectation.prototype.endHook = function () {
 };
 
 yasmini.class.Specification.prototype.beginHook = function () {
-  var msg = "run beginHook on specification #" + this.message;
+  let msg = "run beginHook on specification #" + this.message;
   this.description.verbalization.push(msg);
 };
 yasmini.class.Specification.prototype.endHook = function () {
@@ -121,19 +123,19 @@ yasmini.class.Specification.prototype.endHook = function () {
   } else {
     msg = yasmini.messagefn('partialSuccess', 
                             this.expectationSuccessful,
-                            (this.expectationIntended ?
-                             this.expectationIntended :
-                             this.expectationAttempted ));
+                            this.expectationIntended ?
+                                this.expectationIntended :
+                                this.expectationAttempted );
     }
     this.description.verbalization.push(msg);
   };
 
 yasmini.class.Description.prototype.beginHook = function () {
-  var msg = "run beginHook on description #" + this.message;
+  let msg = "run beginHook on description #" + this.message;
   this.verbalization = [msg];
 };
 yasmini.class.Description.prototype.endHook = function () {
-  var msg = "run endHook on description #" + this.message;
+  let msg = "run endHook on description #" + this.message;
   this.verbalization.push(msg);
 };
 

@@ -26,8 +26,8 @@ not compatible: for more details see below.
 ## Synopsis
 
 ```javascript
-var yasmini = require('yasmini');
-var describe = yasmini.describe,
+let yasmini = require('yasmini');
+let describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect;
 
@@ -39,10 +39,10 @@ describe("some program", function () {
 
 // And if you prefer full control:
 
-var d1 = describe("some program", function () {
-  var it1 = it("should run this", function () {
-    var e1 = expect(2+2).toBe(4);
-    var e2 = expect(e1.raisedException, {
+let d1 = describe("some program", function () {
+  let it1 = it("should run this", function () {
+    let e1 = expect(2+2).toBe(4);
+    let e2 = expect(e1.raisedException, {
       verbose: false
     }).toBe(false);
   }, { // options
@@ -97,8 +97,8 @@ The common way is to require Yasmini:
   own verbalizer).
 
 ```javascript
-var yasmini = require('yasmini');
-var describe = yasmini.describe,
+let yasmini = require('yasmini');
+let describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect;
 
@@ -168,7 +168,7 @@ mandatory. The last one can take two forms. Or it sets options with
 default shown below:
 
 ```javascript
-var s = it("message", function () {
+let s = it("message", function () {
   // write expectations here ...
 }, {
   verbose: d.verbose, // inherited
@@ -205,9 +205,9 @@ the internal events of the process): it prints `1, 2, 3, 4, 5`.
 ```javascript
 describe("evaluation order", function () {
   console.log(1);
-  var it1 = it("specification A", function () {
+  let it1 = it("specification A", function () {
       console.log(3);
-      var e1 = expect(3+1).toBe(4);
+      let e1 = expect(3+1).toBe(4);
       // all properties of e1 are available here
   });
   // Only static properties of it1 available here
@@ -261,7 +261,7 @@ expect(function).invoke(values...)...
 expect(actual).done();
 
 // More complex example:
-var e = expect(something, {
+let e = expect(something, {
   stopOnFailure: s.stopOnFailure,
   verbose: s.verbose,
   code: "string"

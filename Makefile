@@ -19,10 +19,14 @@ test.with.yasmini :
 	node spec/ytests.js
 	node spec/ytestfact.js
 	node spec/ytestserver.js
+	node spec/ytestverbalize.js
+
+jshint :
+	node_modules/.bin/jshint yasmini.js example/*.js codegradx/*.js
 
 # ############## NPM package
 
-publish : clean 
+publish : clean jshint
 	git status .
 	-git commit -m "NPM publication `date`" .
 	git push
