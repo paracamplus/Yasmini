@@ -1,9 +1,8 @@
 // Tests using Yasmini without Jasmine
 
-var yasmini = require('yasmini');
-//yasmini.load('./codegradx/verbalizer.js');
+let yasmini = require('yasmini');
 require('yasmini/codegradx/verbalizer');
-var describe = yasmini.describe,
+let describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect;
 

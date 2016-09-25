@@ -401,7 +401,11 @@ Feel free to write your own adjunctions and share them!
 # Examples
 
 There are some Yasmini test files named `spec/ytest*.js`. They cannot
-be processed by Jasmine.
+be processed by Jasmine. You can run them with Yasmini as:
+
+```shell
+node spec/ytests.js
+```
 
 # Fine points
 

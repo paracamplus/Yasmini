@@ -18,6 +18,7 @@ test.with.yasmini :
 	cd spec/ && ln -sf ../node_modules .
 	node spec/ytests.js
 	node spec/ytestfact.js
+	node spec/ytestorder.js
 	node spec/ytestserver.js
 	node spec/ytestverbalize.js
 

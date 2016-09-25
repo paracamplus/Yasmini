@@ -1,16 +1,16 @@
 // Tests using Yasmini without Jasmine
 
-var yasmini = require('yasmini');
+let yasmini = require('yasmini');
 //yasmini.load('yasmini-verbalize.js');
 require('yasmini/example/verbalizer');
-var describe = yasmini.describe,
+let describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect,
     fail     = yasmini.fail;
 
 describe("some program", function () {
   var e1, e3;
-  var it1 = it("should run this entirely", function () {
+  let it1 = it("should run this entirely", function () {
     e1 = expect('2+2').eval().toBe(4);
     //console.log(e1); // DEBUG
     expect(e1.raisedException, {
@@ -30,8 +30,8 @@ describe("some program", function () {
         expectationIntended: 3
   });
   //console.log(it1);//DEBUG
-  var it2 = it("should check previous specification", function () {
-    var verbs = e1.specification.description.verbalization;
+  let it2 = it("should check previous specification", function () {
+    let verbs = e1.specification.description.verbalization;
     expect(verbs.length).toBe(19);
     expect(verbs[10]).toMatch(/Je vais/);
     expect(verbs[12]).toMatch(/Reached that point/);

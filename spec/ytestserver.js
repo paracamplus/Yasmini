@@ -1,25 +1,25 @@
 // Yasmini asynchronous test
 
 function hellohttpserverfn(port){
-    var http = require('http');
-    var server = http.createServer(function(req, res) {
+    let http = require('http');
+    let server = http.createServer(function(req, res) {
         res.end("Hello world");  
     });
     server.listen(port);
     return server; 
 }
 
-var request = require("request");
-var port = 1234;
-var host = "localhost";
-var base_url = "http://"+host+":"+port+"/";
+let request = require("request");
+let port = 1234;
+let host = "localhost";
+let base_url = "http://"+host+":"+port+"/";
 
-var server = hellohttpserverfn(port);
+let server = hellohttpserverfn(port);
 
-var yasmini = require('yasmini');
+let yasmini = require('yasmini');
 //yasmini.load('yasmini-verbalize.js');
 require('yasmini/example/verbalizer');
-var describe = yasmini.describe,
+let describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect,
     fail     = yasmini.fail;

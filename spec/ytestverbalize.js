@@ -1,8 +1,8 @@
 // Yasmini verbalization test in French
 
-var yasmini = require('yasmini/example/verbalizer');
+let yasmini = require('yasmini/example/verbalizer');
 
-var describe = yasmini.describe,
+let describe = yasmini.describe,
     it       = yasmini.it,
     expect   = yasmini.expect;
 
