@@ -157,16 +157,19 @@ yasmini.messagefn = function (key) {
 let evalStudentTests_ = function (config, specfile) {
     yasmini.verbalize("+", yasmini.messagefn('startTests'));
     let src = fs.readFileSync(specfile);
-    // NOTA: this pollutes the current environment with student's functions:
-    //let current = vm.runInThisContext("this");
     let current = yasmini.global;
-    Object.assign(current, config.module, {
+    Object.assign(current, {
+        require:   yasmini.imports.module.require,
         yasmini:   yasmini,
+        //console:   yasmini.imports.console, // no associated setter!
         describe:  yasmini.describe,
         it:        yasmini.it,
         expect:    yasmini.expect,
-        require:   yasmini.imports.module.require
+        fail:      yasmini.fail  
     });
+    for (let fname in config.functions) {
+        current[fname] = config.module[fname];
+    }
     vm.runInNewContext(src, current);
     return true;
 };
