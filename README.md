@@ -257,6 +257,7 @@ expect(actual).toBeA(Class)
 expect(actual).toMatch(regexp)
 expect(string).eval()...
 expect(function).toThrow()
+expect(function).toNotThrow()
 expect(function).invoke(values...)...
 expect(actual).done();
 
@@ -325,8 +326,11 @@ The `toBeA(classname)` checks whether `actual` is an instance of `classname`.
 The `toMatch(regexp)` matcher converts `actual` to a string and checks
 whether the regexp acccepts it.
 
-The `toThrow` matcher checks whether an exception was previously raised
-by the expectation. It is often used after `invoke`.
+The `toThrow` matcher checks whether an exception was previously
+raised by the expectation. It is often used after `invoke`. The
+`toNotThrow` matcher checks wether no exception was previously raised
+by the expectation. It is often used after `invoke` to check that the
+expression was evaluated without problem whatever its final value.
 
 The `invoke` matcher considers `actual` to be a function to invoke
 (possibly with some arguments); `actual` is reset to the obtained

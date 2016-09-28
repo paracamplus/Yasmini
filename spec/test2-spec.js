@@ -299,6 +299,15 @@ describe("Yasmini library: a light Jasmine framework", function () {
           });
       });
   });
+    
+  it("should offer .toNotThrow", function () {
+      yasmini.describe("Yasmini: should offer .toNotThrow", function () {
+          var it1 = yasmini.it("check regular", function () {
+              var check1 = yasmini.expect("4+1").eval().toNotThrow();
+              expect(check1.pass).toBe(true);
+          });
+      });
+  });
 
   it("should not offer .not", function (done) {
     var it1;

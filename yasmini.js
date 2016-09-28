@@ -772,6 +772,23 @@ defineMatcher('toThrow', function () {
   return this;
 });
 
+defineMatcher('toNotThrow', function () {
+  try {
+    if (this.raisedException) {
+      this.pass = false;
+      if (this.stopOnFailure) {
+        let exc = new Failure(this.specification, this, 'toThrow', arguments);
+        throw exc;
+      }
+    } else {
+        this.pass = true;
+    }
+  } finally {
+    run_hook(this, 'match');
+  }
+  return this;
+});
+
 defineMatcher('eval', function () {
   try {
     this.code = this.actual;
