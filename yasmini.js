@@ -134,7 +134,11 @@ Description.prototype.run = function () {
     return promise;
 };
 Description.prototype.log_ = function (msg) {
-    this.log.push([ process.uptime(), msg]);
+    if ( process && process.uptime && typeof process.uptime === 'function' ) {
+        this.log.push([ process.uptime(), msg]);
+    } else {
+        this.log.push(msg);
+    }
 };
 Description.prototype.run_specifications = function () {
     let description = this;
