@@ -162,8 +162,8 @@ Description.prototype.run_specifications = function () {
     }
     return run_specification(0);
 };
-// A description behaves similarly to a Promise except that then is
-// renamed hence.
+// A Description behaves similarly to a Promise except that then() is
+// renamed hence().
 Description.prototype.hence = function () {
     return this.promise.then.apply(this.promise, arguments);
 };
