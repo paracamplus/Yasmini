@@ -163,9 +163,13 @@ Description.prototype.run_specifications = function () {
     return run_specification(0);
 };
 // A Description behaves similarly to a Promise except that then() is
-// renamed hence().
-Description.prototype.hence = function () {
-    return this.promise.then.apply(this.promise, arguments);
+// renamed hence(). This ensures that the hence() function will receive
+// the Description as first argument:
+Description.prototype.hence = function (f) {
+    let description = this;
+    return this.promise.then.call(this.promise, function () {
+        return f(description);
+    });
 };
 Description.prototype.beginHook = function () {
   return this;
