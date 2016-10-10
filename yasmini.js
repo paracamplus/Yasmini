@@ -1,3 +1,6 @@
+// A reflexive test framework
+// Time-stamp: "2016-10-10 17:33:05 queinnec" 
+
 /*
 Copyright (C) 2016 Christian.Queinnec@CodeGradX.org
 
@@ -793,11 +796,17 @@ defineMatcher('toNotThrow', function () {
   return this;
 });
 
-defineMatcher('eval', function () {
+defineMatcher('eval', function (context, options) {
   try {
     this.code = this.actual;
     this.actual = undefined;
-    this.actual = vm.runInThisContext(this.code);
+    options = options || {displayErrors: true};  
+    if ( context ) {
+        this.actual = vm.runInContext(this.code, context, options);
+    } else {
+        // Evaluate in the current 'global' context:
+        this.actual = vm.runInThisContext(this.code, options);
+    }
   } catch (exc) {
     this.raisedException = true;
     this.exception = exc;

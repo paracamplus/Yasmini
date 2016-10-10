@@ -336,10 +336,12 @@ The `invoke` matcher considers `actual` to be a function to invoke
 (possibly with some arguments); `actual` is reset to the obtained
 value.
 
-The `eval` matcher considers `actual` to be a string which must be `eval`-ed.
-The resulting value will replace `actual` so you may chain this matcher
-with other matchers. It is possible to use `toThrow` after `eval` to check
-whether an exception occurred.
+The `eval` matcher considers `actual` to be a string which must be
+`eval`-ed. The resulting value will replace `actual` so you may chain
+this matcher with other matchers. It is possible to use `toThrow`
+after `eval` to check whether an exception occurred. The `eval`
+matcher can take up to two optional arguments: the context object and
+some options to be given to `vm.runInContext`.
 
 All matchers run the `matchHook` hook and return the input
 `Expectation` so they may be chained. Note however that expectations
