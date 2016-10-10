@@ -1,5 +1,5 @@
 // A reflexive test framework
-// Time-stamp: "2016-10-10 17:33:05 queinnec" 
+// Time-stamp: "2016-10-10 19:12:18 queinnec" 
 
 /*
 Copyright (C) 2016 Christian.Queinnec@CodeGradX.org
@@ -800,7 +800,8 @@ defineMatcher('eval', function (context, options) {
   try {
     this.code = this.actual;
     this.actual = undefined;
-    options = options || {displayErrors: true};  
+    options = options || {displayErrors: true};
+    context = context || module.exports.global;
     if ( context ) {
         this.actual = vm.runInContext(this.code, context, options);
     } else {
