@@ -336,6 +336,11 @@ The `invoke` matcher considers `actual` to be a function to invoke
 (possibly with some arguments); `actual` is reset to the obtained
 value.
 
+The `transform` matcher is not a real matcher since it checks nothing.
+It applies its argument (a unary function) on the `actual` value and
+replace `actual` with the result. This can be used, for instance, to
+normalize a result.
+
 The `eval` matcher considers `actual` to be a string which must be
 `eval`-ed. The resulting value will replace `actual` so you may chain
 this matcher with other matchers. It is possible to use `toThrow`
