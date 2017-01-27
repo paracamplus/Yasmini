@@ -496,6 +496,28 @@ describe("Yasmini library: a light Jasmine framework", function () {
       });
   });
 
+  it("should offer .transform", function () {
+      yasmini.describe("Yasmini: should offer expect.transform",
+      function () {
+          function double (n) { return 2*n; }
+          function throwX (n) { throw 34; }
+          var it1 = yasmini.it("should run it", function () {
+              var check1 = yasmini.expect(33).transform(double).toBe(66);
+              expect(check1.actual).toBe(66);
+              var check2 = yasmini.expect(34).transform(throwX);
+              expect(check2.actual).toBe(34);
+              expect(check2.pass).toBeFalsy();
+          }).hence(function (desc) {
+          var it1 = desc.specifications[0];
+          expect(it1.expectations.length).toBe(2);
+          expect(it1.expectationAttempted).toBe(2);
+          expect(it1.expectationSuccessful).toBe(2);
+          expect(it1.expectations[0].pass).toBe(true);
+          expect(it1.expectations[1].pass).toBe(false);
+      });
+    });
+  });
+
   it("should offer expect.invoke", function () {
     yasmini.describe("Yasmini: should offer expect.invoke",
     function () {

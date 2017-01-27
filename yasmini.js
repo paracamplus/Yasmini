@@ -1,5 +1,5 @@
 // A reflexive test framework
-// Time-stamp: "2016-10-10 19:12:18 queinnec" 
+// Time-stamp: "2017-01-27 15:53:11 queinnec" 
 
 /*
 Copyright (C) 2016 Christian.Queinnec@CodeGradX.org
@@ -676,7 +676,7 @@ defineMatcher('toBeCloseTo', function (expected, precision, options) {
     if (precision !== 0) {
       precision = precision || 2;
     }
-      let delta = Math.pow(10, -precision) / 2;
+    let delta = Math.pow(10, -precision) / 2;
     Object.assign(this, options || {});
     this.pass = true;
     if (this.raisedException || Math.abs(this.actual -expected) > delta) {
@@ -712,6 +712,26 @@ defineMatcher('toMatch', function (regexp, options) {
   return this;
 });
 
+defineMatcher('transform', function (transformer) {
+    try {
+        if ( typeof transformer === 'function' ||
+             transformer instanceof Function ) {
+            this.actual = transformer(this.actual);
+        }
+    } catch (exc) {
+        this.raisedException = exc;
+        this.pass = false;
+        if ( this.stopOnFailure ) {
+            let exc = new Failure(
+                this.specification, this, 'transform', arguments);
+            throw exc;
+        }
+    } finally {
+        run_hook(this, 'match');
+    }
+    return this;
+});
+
 defineMatcher('toBeFunction', function (options) {
   try {
     Object.assign(this, options || {});
@@ -733,7 +753,7 @@ defineMatcher('toBeFunction', function (options) {
 defineMatcher('toBeA', function (className, options) {
   try {
     Object.assign(this, options || {});
-      this.pass = false;
+    this.pass = false;
     if ( typeof this.actual === 'object' ) {
         if ( this.actual.constructor === className ) {
             this.pass = true;
