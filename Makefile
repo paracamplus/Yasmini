@@ -1,4 +1,4 @@
-work : tests update pack install publish
+work : tests update install publish
 clean :
 	-rm npm-debug.log
 	-rm -rf tmp
@@ -45,7 +45,7 @@ Yasmini.tgz : clean
 	tar tzf Yasmini.tgz
 
 REMOTE	=	www.paracamplus.com
-install : 
+install : Yasmini.tgz
 	rsync -avu Yasmini.tgz \
 	    ${REMOTE}:/var/www/www.paracamplus.com/Resources/Javascript/
 
