@@ -1,5 +1,5 @@
 // A reflexive test framework
-// Time-stamp: "2017-01-27 15:53:11 queinnec" 
+// Time-stamp: "2017-02-01 11:34:46 queinnec" 
 
 /*
 Copyright (C) 2016 Christian.Queinnec@CodeGradX.org
@@ -875,6 +875,6 @@ module.exports = {
       console: console
   }
 };
-module.exports.yasmini = module.exports;
+module.exports.yasmini = yasmini = module.exports;
 
 // end of yasmini.js
