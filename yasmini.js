@@ -1,5 +1,5 @@
 // A reflexive test framework
-// Time-stamp: "2017-02-01 11:34:46 queinnec" 
+// Time-stamp: "2017-02-19 11:01:18 queinnec" 
 
 /*
 Copyright (C) 2016 Christian.Queinnec@CodeGradX.org
@@ -30,12 +30,12 @@ var Promise = require('bluebird');
 
 let message = {
     fr: {
-        notwithinit: "Ne doit être utilisé que dans it()",
-        notwithindescribe: "Ne doit être utilisé que dans describe()"
+        notwithinit: "Ne doit être utilisé que dans it() ",
+        notwithindescribe: "Ne doit être utilisé que dans describe() "
     },
     en: {
-        notwithinit: "Not within it()",
-        notwithindescribe: "Not within describe()"
+        notwithinit: "Not within it() ",
+        notwithindescribe: "Not within describe() "
     }
 };
 
@@ -662,6 +662,26 @@ defineMatcher('toBeGreaterThan', function (expected, options) {
       if ( this.stopOnFailure ) {
         let exc = new Failure(
             this.specification, this, 'toBeGreaterThan', arguments);
+        throw exc;
+      }
+    }
+  } finally {
+    run_hook(this, 'match');
+  }
+  return this;
+});
+
+defineMatcher('toBeBetween', function (min, max, options) {
+  try {
+    Object.assign(this, options || {});
+    this.pass = true;
+      if (this.raisedException ||
+          this.actual < min ||
+          max < this.actual ) {
+      this.pass = false;
+      if ( this.stopOnFailure ) {
+        let exc = new Failure(
+            this.specification, this, 'toBeBetween', arguments);
         throw exc;
       }
     }

@@ -444,6 +444,30 @@ describe("Yasmini library: a light Jasmine framework", function () {
     });
   });
 
+  it("should offer .toBeBetween", function () {
+    yasmini.describe("Yasmini: should offer .toBeBetween", 
+    function () {
+      var it1 = yasmini.it("check .toBeBetween", function () {
+          var check01 = yasmini.expect(3).toBeBetween(1, 4);
+          expect(check01.pass).toBe(true);
+          var check02 = yasmini.expect(3).toBeBetween(1, 3);
+          expect(check02.pass).toBe(true);
+          var check03 = yasmini.expect(3).toBeBetween(3, 4);
+          expect(check03.pass).toBe(true);
+          var check1 = yasmini.expect(3).toBeBetween(1, 2);
+          expect(check1.pass).toBe(false);
+          var check2 = yasmini.expect(3).toBeBetween(3.1, 4);
+          expect(check2.pass).toBe(false);
+      }).hence(function (desc) {
+          var it1 = desc.specifications[0];
+          expect(it1.expectations.length).toBe(5);
+          expect(it1.expectationAttempted).toBe(5);
+          expect(it1.expectationSuccessful).toBe(3);
+          expect(it1.expectations[0].pass).toBe(true);
+      });
+    });
+  });
+    
   it("should offer .toBeCloseTo", function () {
     yasmini.describe("Yasmini: should offer .toBeCloseTo", 
     function () {
