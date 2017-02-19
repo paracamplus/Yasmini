@@ -320,6 +320,8 @@ To compare numbers you have `toBeGreaterThan` and `toBeLessThan` that
 implements strict comparison. Approximate comparison can be checked
 with `toBeClose(expected, precision)`: the `actual` result should be
 in the vicinity of `expected` plus or minus 10 to the `precision` power.
+Another numeric matcher is `toBeBetween(min, max)` that checks that 
+`actual` is between `min` and `max` (bounds included).
 
 The `toBeA(classname)` checks whether `actual` is an instance of `classname`.
 
