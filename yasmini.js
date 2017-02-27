@@ -1,8 +1,8 @@
 // A reflexive test framework
-// Time-stamp: "2017-02-27 09:03:31 queinnec" 
+// Time-stamp: "2017-02-27 14:45:00 queinnec" 
 
 /*
-Copyright (C) 2016 Christian.Queinnec@CodeGradX.org
+Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -852,7 +852,6 @@ defineMatcher('eval', function (context, options) {
     this.code = this.actual;
     this.actual = undefined;
     options = options || {displayErrors: true};
-    context = context || module.exports.global;
     if ( context ) {
         this.actual = vm.runInContext(this.code, context, options);
     } else {
