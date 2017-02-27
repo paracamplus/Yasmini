@@ -609,12 +609,23 @@ describe("Yasmini library: a light Jasmine framework", function () {
         var code = "3 * 4";
         var check1 = yasmini.expect(code).eval().toBe(12);
         expect(check1.code).toBe(code);
-          expect(check1.actual).toBe(12);
+        expect(check1.actual).toBe(12);
+      });
+      var it2 = yasmini.it("should use global", function () {
+          var code = "3 * varXYZ";
+          global.varXYZ = 2;
+          var check2 = yasmini.expect(code).eval().toBe(6);
+          expect(check2.code).toBe(code);
+          expect(check2.actual).toBe(6);
       });
     }).hence(function (desc) {
+        expect(desc.specifications.length).toBe(2);
         var it1 = desc.specifications[0];
         expect(it1.expectationAttempted).toBe(1);
         expect(it1.expectationSuccessful).toBe(1);
+        var it2 = desc.specifications[1];
+        expect(it2.expectationAttempted).toBe(1);
+        expect(it2.expectationSuccessful).toBe(1);
     });
   });
 

@@ -1,5 +1,5 @@
 // A reflexive test framework
-// Time-stamp: "2017-02-19 11:01:18 queinnec" 
+// Time-stamp: "2017-02-27 09:03:31 queinnec" 
 
 /*
 Copyright (C) 2016 Christian.Queinnec@CodeGradX.org
@@ -835,6 +835,17 @@ defineMatcher('toNotThrow', function () {
   }
   return this;
 });
+
+/* 
+   By default, the `eval` matcher evaluates a string in the current
+   context, that is the global environment. If you need a variable 
+   to be used within that string, you must install it previously in
+   the global environment. Something like:
+
+   global.v = 3;
+   expect("v+1").eval().toBe(4);
+
+*/
 
 defineMatcher('eval', function (context, options) {
   try {
