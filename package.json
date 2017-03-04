@@ -1,6 +1,6 @@
 {
   "name": "yasmini",
-  "version": "0.2.17",
+  "version": "0.2.18",
   "engines": {
     "node": ">= 6.5"
   },

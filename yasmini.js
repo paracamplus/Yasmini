@@ -1,5 +1,5 @@
 // A reflexive test framework
-// Time-stamp: "2017-02-27 14:45:00 queinnec" 
+// Time-stamp: "2017-03-04 17:21:18 queinnec" 
 
 /*
 Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
@@ -388,10 +388,16 @@ function Expectation (spec, options) {
   this.runEndHook = false;
 }
 Expectation.prototype.run = function () {
-  run_hook(this, 'begin');
-  // this.endHook() will be run just before Specification.endHook() or
-  // just before the beginHook() of the next Specification.
-  return this;
+    // run the endHook of the previous expectation if any:
+    let n = this.specification.expectations.length;
+    if ( n > 1 ) {
+        let previousExpectation = this.specification.expectations[n-2];
+        run_hook(previousExpectation, 'end');
+    }
+    run_hook(this, 'begin');
+    // this.endHook() will be run just before Specification.endHook() or
+    // just before the beginHook() of the next Specification.
+    return this;
 };
 Expectation.prototype.beginHook = function () {
   return this;
@@ -400,7 +406,7 @@ Expectation.prototype.matchHook = function () {
   return this;
 };
 Expectation.prototype.endHook = function () {
-  // endHook run only once per expectation:
+  // endHook should run only once per expectation:
   if ( ! this.runEndHook ) {
       this.runEndHook = true;
   }

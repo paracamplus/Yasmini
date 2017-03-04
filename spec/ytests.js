@@ -32,9 +32,9 @@ describe("some program", function () {
   //console.log(it1);//DEBUG
   let it2 = it("should check previous specification", function () {
     let verbs = e1.specification.description.verbalization;
-    expect(verbs.length).toBe(19);
-    expect(verbs[10]).toMatch(/Je vais/);
-    expect(verbs[12]).toMatch(/Reached that point/);
+    expect(verbs.length).toBe(21);
+    expect(verbs[4]).toMatch(/Je vais/);
+    expect(verbs[14]).toMatch(/Reached that point/);
     expect(e3.raisedException).toBe(true);
     //console.log(it1); // DEBUG
     expect(it1.raisedException).toBe(false);
