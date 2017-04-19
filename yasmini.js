@@ -1,5 +1,5 @@
 // A reflexive test framework
-// Time-stamp: "2017-03-04 17:21:18 queinnec" 
+// Time-stamp: "2017-04-15 09:29:38 queinnec" 
 
 /*
 Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
@@ -457,7 +457,7 @@ Failure.prototype.toString = function () {
         msg += " on ." +
             this.matcherName + '(...)';
     }
-    if ( it.exception ) {
+    if ( it && it.exception ) {
         if ( it.raisedException ) {
             msg += ' raised ' + it.exception;
         } else {

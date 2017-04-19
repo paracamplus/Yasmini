@@ -1,4 +1,4 @@
-work : tests update install publish
+work : tests update install publish propagate
 clean :
 	-rm npm-debug.log
 	-rm -rf tmp
@@ -51,5 +51,10 @@ install : Yasmini.tgz
 
 update :
 	npm version patch
+
+PARACAMPLUSDIR = ${HOME}/Paracamplus/ExerciseFrameWork
+propagate :
+	npm install -g yasmini
+	cd ${PARACAMPLUSDIR}/JQuery/CodeGradXmarker/ && npm install -S yasmini	
 
 # end of Makefile
