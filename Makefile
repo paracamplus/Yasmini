@@ -21,7 +21,7 @@ test.with.yasmini :
 	node spec/ytestserver.js
 	node spec/ytestverbalize.js
 
-jshint :
+lint :
 	node_modules/.bin/jshint yasmini.js example/*.js 
 
 # ############## NPM package

@@ -1,8 +1,15 @@
-// A reflexive test framework
-// Time-stamp: "2017-04-15 09:29:38 queinnec" 
+// Yasmini: A reflexive test framework
+// Time-stamp: "2017-08-25 22:25:06 queinnec" 
 
 /*
 Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
+
+@module yasmini
+@author Christian Queinnec <Christian.Queinnec@codegradx.org>
+@license ISC
+@see {@link https://github.com/paracamplus/Yasmini.git|Yasmini} site.
+
+
 
 Permission to use, copy, modify, and/or distribute this software for any
 purpose with or without fee is hereby granted, provided that the above
@@ -16,8 +23,6 @@ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
 OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-See https://github.com/paracamplus/Yasmini.git
-
 */
 
 // Require some node.js modules:
@@ -27,6 +32,20 @@ let fs = require('fs');
 let util = require('util');
 let _ = require('lodash');
 var Promise = require('bluebird');
+
+// Yasmini may use a specific require function. This will be the case
+// for instance, if yasmini is used within a browser and webpacked.
+var yasmini_require;
+try {
+    // try to grasp the current require if any:
+    yasmini_require = require;
+    yasmini_require = yasmini_require
+        || function fake_require (moduleName) {
+            return that.moduleName.exports;
+        };
+} catch (e) {
+    // ignore that error!
+}
 
 let message = {
     fr: {
@@ -75,7 +94,7 @@ function load (filename, bindings) {
   let src = fs.readFileSync(f);
   let newglobal = {
     yasmini: module.exports,
-    require: require,
+    require: yasmini_require,
     console: console
   };
   newglobal = Object.assign(newglobal, bindings || {});
@@ -247,6 +266,7 @@ function Specification (description, msg, f, options) {
   this.result = undefined;
   this.raisedException = false;
   this.exception = null;
+  this.index = 0;
   this.expectationAttempted = 0;
   this.expectationSuccessful = 0;
   this.pass = false;
@@ -336,7 +356,7 @@ Specification.prototype.update_ = function () {
   spec.expectationSuccessful = 0;
   spec.expectations.forEach(function (expectation) {
     if ( expectation.pass ) {
-      spec.expectationSuccessful++;
+      spec.expectationSuccessful += expectation.weight;
     } else {
       // One failed expectation fails the entire specification!
       spec.pass = false;
@@ -350,7 +370,7 @@ Specification.prototype.update_ = function () {
     // propagate to description:
     spec.description.update_();
     return spec;
-  };
+};
 
 function mk_it (description) {
     let newit = function (msg, f, options) {
@@ -378,13 +398,15 @@ function Expectation (spec, options) {
   // Optional fields:
   this.thunk = undefined;
   this.code = undefined;
+  this.weight = 1;
   Object.assign(this, options || {});
   spec.description.log_("Expectation: " + this.actual);
+  this.index = ++this.specification.index;
+  this.specification.expectationAttempted += this.weight;
   // Internal (dynamic) fields:
   this.raisedException = false;
   this.exception = null;
   this.pass = false;
-  this.index = ++this.specification.expectationAttempted;
   this.runEndHook = false;
 }
 Expectation.prototype.run = function () {
@@ -420,10 +442,9 @@ Expectation.prototype.update_ = function () {
 
 function mk_expect (spec) {
   let new_expect = function (actual, options) {
-    let expectation = new Expectation(spec, {
-        actual: actual
-      });
-    Object.assign(expectation, options || {});
+    let newoptions = {actual};
+    Object.assign(newoptions, options || {});  
+    let expectation = new Expectation(spec, newoptions);
     expectation.run();
     return expectation;
   };
@@ -851,6 +872,12 @@ defineMatcher('toNotThrow', function () {
    global.v = 3;
    expect("v+1").eval().toBe(4);
 
+   Differently from Jasmine, you don't need to wrap an expression that
+   throws something in a function to check whether something is
+   thrown. Just write:
+
+   expect("throw 3").eval().toThrow();
+
 */
 
 defineMatcher('eval', function (context, options) {
@@ -890,7 +917,7 @@ module.exports = {
   fail:     front_fail,
   load:     load,
   message:  message,
-  require:  require,
+  require:  yasmini_require,
   // These classes are provided for hooks providers:
   class: {
     Description:   Description,

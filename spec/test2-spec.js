@@ -659,6 +659,51 @@ describe("Yasmini library: a light Jasmine framework", function () {
     });
   });
 
+  it("Expectations are weighted (1)", function () {
+      yasmini.describe("Yasmini: Expectations are weighted", function () {
+          var it1 = yasmini.it("should run it", function () {
+              var check1 = yasmini.expect("2").eval().toBe(2);
+              expect(check1.weight).toBe(1);
+              expect(check1.pass).toBeTruthy();
+              var check2 = yasmini.expect("1+1", {
+                  weight: 10
+              }).eval().toBe(2);
+              expect(check2.weight).toBe(10);
+              expect(check2.pass).toBeTruthy();
+          }, {
+              expectationIntended: 11
+          });
+      }).hence(function (desc) {
+          var it1 = desc.specifications[0];
+          //console.log(it1);//
+          expect(it1.pass).toBeTruthy();
+          expect(it1.expectationAttempted).toBe(11);
+          expect(it1.expectationSuccessful).toBe(11);
+      });
+  });
+    
+    it("Expectations are weighted (2)", function () {
+      yasmini.describe("Yasmini: Expectations are weighted", function () {
+          var it1 = yasmini.it("should run it", function () {
+              var check1 = yasmini.expect("3").eval().toBe(2);
+              expect(check1.weight).toBe(1);
+              expect(check1.pass).toBeFalsy();
+              var check2 = yasmini.expect("1+1", {
+                  weight: 5
+              }).eval().toBe(2);
+              expect(check2.weight).toBe(5);
+              expect(check2.pass).toBeTruthy();
+          }, {
+              expectationIntended: 6
+          });
+      }).hence(function (desc) {
+          var it1 = desc.specifications[0];
+          expect(it1.pass).toBeFalsy();
+          expect(it1.expectationAttempted).toBe(6);
+          expect(it1.expectationSuccessful).toBe(5);
+      });
+  });
+
   it("should offer done explicitly called", function (done) {
       var fin = false;
       yasmini.describe("Yasmini: should offer done explicitly called", function () {
@@ -736,7 +781,6 @@ describe("Yasmini library: a light Jasmine framework", function () {
           done();
       });
   });
-          
 
 }); // end of describe
 
