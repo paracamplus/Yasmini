@@ -1,5 +1,5 @@
 // Yasmini: A reflexive test framework
-// Time-stamp: "2017-08-25 22:25:06 queinnec" 
+// Time-stamp: "2017-10-16 15:48:00 queinnec" 
 
 /*
 Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
@@ -83,7 +83,7 @@ function front_fail () {
     return inner_fail.apply(this, arguments);
 }
 
-/*
+/*        DEPRECATED
 * Load utility. The utility file should be stored aside yasmini.js
 * that is, in the same directory. The file is loaded in its own context
 * optionally enriched by some bindings.
@@ -113,9 +113,13 @@ function run_hook (o, name) {
     }
 }
 
+// All objects are identified with a number:
+let id = 100*1000;
+
 // *********** Description *************
 
 function Description (msg, f, options) {
+  this.id = ++id;
   // Static fields:
   this.message = msg;
   this.behavior = f;
@@ -251,6 +255,7 @@ function describe (msg, f, options) {
 // *********** Specification *************
 
 function Specification (description, msg, f, options) {
+  this.id = ++id;
   // Static fields:
   this.description = description;
   description.log_("Specification: " + msg);
@@ -390,6 +395,7 @@ function mk_it (description) {
 // *********** Expectation *************
 
 function Expectation (spec, options) {
+  this.id = ++id;
   // Static fields:
   this.specification = spec;
   spec.expectations.push(this);
@@ -666,7 +672,9 @@ defineMatcher('toBeLessThan', function (expected, options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
-    if (this.raisedException || this.actual >= expected) {
+    if ( this.raisedException ||
+         typeof this.actual === 'undefined' ||
+         this.actual >= expected ) {
       this.pass = false;
       if ( this.stopOnFailure ) {
         let exc = new Failure(
@@ -684,7 +692,9 @@ defineMatcher('toBeGreaterThan', function (expected, options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
-    if (this.raisedException || this.actual <= expected) {
+    if ( this.raisedException || 
+         typeof this.actual === 'undefined' ||
+         this.actual <= expected) {
       this.pass = false;
       if ( this.stopOnFailure ) {
         let exc = new Failure(
@@ -702,9 +712,10 @@ defineMatcher('toBeBetween', function (min, max, options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
-      if (this.raisedException ||
-          this.actual < min ||
-          max < this.actual ) {
+      if ( this.raisedException ||
+           typeof this.actual === 'undefined' ||
+           this.actual < min ||
+           max < this.actual ) {
       this.pass = false;
       if ( this.stopOnFailure ) {
         let exc = new Failure(
@@ -726,7 +737,9 @@ defineMatcher('toBeCloseTo', function (expected, precision, options) {
     let delta = Math.pow(10, -precision) / 2;
     Object.assign(this, options || {});
     this.pass = true;
-    if (this.raisedException || Math.abs(this.actual -expected) > delta) {
+    if ( this.raisedException || 
+         typeof this.actual === 'undefined' ||
+         Math.abs(this.actual - expected) > delta ) {
       this.pass = false;
       if ( this.stopOnFailure ) {
         let exc = new Failure(
@@ -782,14 +795,17 @@ defineMatcher('transform', function (transformer) {
 defineMatcher('toBeFunction', function (options) {
   try {
     Object.assign(this, options || {});
-    if ( typeof this.actual === 'function' ||
-         this.actual instanceof Function ) {
+    if ( typeof this.actual !== 'undefined' &&
+         ( typeof this.actual === 'function' ||
+           this.actual instanceof Function ) ) {
       this.pass = true;
     } else {
       this.pass = false;
-    }
-    if (this.stopOnFailure) {
-      throw "Not a function " + this.actual;
+      if (this.stopOnFailure) {
+          let actual = (typeof this.actual === 'undefined') ?
+              'undefined' : this.actual;
+          throw "Not a function " + actual;
+      }
     }
   } finally {
     run_hook(this, 'match');
