@@ -41,13 +41,14 @@
     "test": "make tests"
   },
   "dependencies": {
-    "lodash": "^4.15",
-    "bluebird": "^3.4"
+    "bluebird": "^3.5.1",
+    "lodash": "^4.17.4"
   },
   "devDependencies": {
-    "jasmine": "^2.3.4",
-    "request": "^2.75",
+    "eslint": "^4.9.0",
     "he": "^1.0",
-    "jshint": "^2.9"
+    "jasmine": "^2.3.4",
+    "jshint": "^2.9.5",
+    "request": "^2.83.0"
   }
 }

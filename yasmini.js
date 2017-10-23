@@ -1,5 +1,5 @@
 // Yasmini: A reflexive test framework
-// Time-stamp: "2017-10-23 15:14:57 queinnec" 
+// Time-stamp: "2017-10-23 15:38:51 queinnec" 
 
 /*
 Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
@@ -28,7 +28,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 // Requirements
 // Yasmini may run in a browser, this 'vm' module emulates the Node.js version:
 let vm;
-(function (evalfn) {
+(function () {
     function evalfn (code) {
         code = `${code};`;
         return eval(code);
@@ -46,19 +46,19 @@ let vm;
         vm = shimvm;
     }
 })();
-let util = require('util');
-let _ = require('lodash');
-var Promise = require('bluebird');
+const _ = require('lodash');
+const Promise = require('bluebird');
+let yasmini; // to be defined below
 
 // Yasmini may use a specific require function. This will be the case
 // for instance, if yasmini is used within a browser and webpacked.
-var yasmini_require;
+let yasmini_require;
 try {
     // try to grasp the current require if any:
     yasmini_require = require;
     yasmini_require = yasmini_require ||
         function fake_require (moduleName) {
-            return that.moduleName.exports;
+            throw new Error(`Cannot require ${moduleName}`);
         };
 } catch (e) {
     // ignore that error!

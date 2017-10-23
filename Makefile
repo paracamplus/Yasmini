@@ -1,35 +1,42 @@
 work : tests update install publish propagate
 clean :
+	-rm -rf node_modules/yasmini
+	-rm -rf spec/node_modules
 	-rm npm-debug.log
 	-rm -rf tmp
 
 # ############## Working rules:
 
-tests : test.with.jasmine test.with.eval test.with.yasmini
+tests : clean lint test.with.jasmine test.with.eval test.with.yasmini
 	@echo;echo "    ALL TESTS SUCCESSFUL ";echo
 test.with.jasmine :
 	rm -rf node_modules/yasmini
 	mkdir -p node_modules/yasmini
-	cp -rp example package.json yasmini.js \
-		node_modules/yasmini/
+	cp -rp example package.json yasmini.js node_modules/yasmini/
 	jasmine spec/test2-spec.js
 	jasmine spec/verbalize2-spec.js
 test.with.eval : 
 	rm -rf node_modules/yasmini
 	mkdir -p node_modules/yasmini
 	cp -rp example package.json node_modules/yasmini/
-	sed -e "s@'vm'@'vmABSENT'@" < yasmini.js > node_modules/yasmini/yasmini.js
+	sed -e "s@'vm'@'vmABSENT'@" < yasmini.js \
+		> node_modules/yasmini/yasmini.js
 	jasmine spec/test2-spec.js
 	jasmine spec/verbalize2-spec.js
 test.with.yasmini :
-	cd spec/ && ln -sf ../node_modules .
+#	npm install request
+	mkdir -p spec/node_modules
+	cd spec/node_modules/ && ln -sf ../../node_modules/* .
+	mkdir -p spec/node_modules/yasmini
+	cp -rp example package.json yasmini.js spec/node_modules/yasmini/
 	node spec/ytests.js
 	node spec/ytestorder.js
 	node spec/ytestserver.js
 	node spec/ytestverbalize.js
 
-lint :
-	node_modules/.bin/jshint yasmini.js example/*.js 
+lint : clean
+#	jshint yasmini.js example/*.js
+	eslint yasmini.js example/*.js
 
 # ############## NPM package
 
