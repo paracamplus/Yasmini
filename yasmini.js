@@ -1,5 +1,5 @@
 // Yasmini: A reflexive test framework
-// Time-stamp: "2017-10-23 15:38:51 queinnec" 
+// Time-stamp: "2017-10-23 18:10:44 queinnec" 
 
 /*
 Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
@@ -27,7 +27,7 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 // Requirements
 // Yasmini may run in a browser, this 'vm' module emulates the Node.js version:
-let vm;
+var vm;
 (function () {
     function evalfn (code) {
         code = `${code};`;
@@ -49,20 +49,6 @@ let vm;
 const _ = require('lodash');
 const Promise = require('bluebird');
 let yasmini; // to be defined below
-
-// Yasmini may use a specific require function. This will be the case
-// for instance, if yasmini is used within a browser and webpacked.
-let yasmini_require;
-try {
-    // try to grasp the current require if any:
-    yasmini_require = require;
-    yasmini_require = yasmini_require ||
-        function fake_require (moduleName) {
-            throw new Error(`Cannot require ${moduleName}`);
-        };
-} catch (e) {
-    // ignore that error!
-}
 
 let message = {
     fr: {
@@ -136,7 +122,7 @@ function Description (msg, f, options) {
   this.pass = false;
   this.log = [];
 }
-Description.prototype.run = function () {
+Description.prototype.run = function descriptionRun () {
     let description = this;
     description.log_("Description run");
     let promise = new Promise(function (resolve /*, reject */) {
@@ -164,7 +150,8 @@ Description.prototype.log_ = function (msg) {
         this.log.push(msg);
     }
 };
-Description.prototype.run_specifications = function () {
+Description.prototype.run_specifications =
+  function descriptionRunSpecifications () {
     let description = this;
     description.log_("Description run_specifications");
     function run_specification (i) {
@@ -195,13 +182,13 @@ Description.prototype.hence = function (f) {
         return f(description);
     });
 };
-Description.prototype.beginHook = function () {
+Description.prototype.beginHook = function descriptionBeginHook () {
   return this;
 };
-Description.prototype.endHook = function () {
+Description.prototype.endHook = function descriptionEndHook () {
   return this;
 };
-Description.prototype.update_ = function () {
+Description.prototype.update_ = function descriptionUpdate_ () {
     let description = this;
     description.log_("Description update_");
     description.pass = true;
@@ -274,7 +261,7 @@ function Specification (description, msg, f, options) {
   this.expectationSuccessful = 0;
   this.pass = false;
 }
-Specification.prototype.run = function () {
+Specification.prototype.run = function specificationRun () {
     let spec = this;
     run_hook(spec, 'begin');
     let description = spec.description;
@@ -345,13 +332,13 @@ Specification.prototype.run = function () {
       });
     return spec.promise;
 };
-Specification.prototype.beginHook = function () {
+Specification.prototype.beginHook = function specificationBeginHook () {
   return this;
 };
-Specification.prototype.endHook = function () {
+Specification.prototype.endHook = function specificationEndHook () {
   return this;
 };
-Specification.prototype.update_ = function () {
+Specification.prototype.update_ = function specificationUpdate_ () {
   let spec = this;
   spec.description.log_("Specification update_");
   spec.pass = true;
@@ -413,7 +400,7 @@ function Expectation (spec, options) {
   this.pass = false;
   this.runEndHook = false;
 }
-Expectation.prototype.run = function () {
+Expectation.prototype.run = function expectationRun () {
     // run the endHook of the previous expectation if any:
     let n = this.specification.expectations.length;
     if ( n > 1 ) {
@@ -425,20 +412,20 @@ Expectation.prototype.run = function () {
     // just before the beginHook() of the next Specification.
     return this;
 };
-Expectation.prototype.beginHook = function () {
+Expectation.prototype.beginHook = function expectationBeginHook () {
   return this;
 };
-Expectation.prototype.matchHook = function () {
+Expectation.prototype.matchHook = function expectationMatchHook () {
   return this;
 };
-Expectation.prototype.endHook = function () {
+Expectation.prototype.endHook = function expectationEndHook () {
   // endHook should run only once per expectation:
   if ( ! this.runEndHook ) {
       this.runEndHook = true;
   }
   return this;
 };
-Expectation.prototype.update_ = function () {
+Expectation.prototype.update_ = function expectationUpdate_ () {
   // Propagate to enclosing specification:
   this.specification.update_();
   return this;
@@ -471,7 +458,7 @@ function Failure (specification, expectation, matcherName, args) {
 }
 Object.setPrototypeOf(Failure.prototype, Error.prototype);
 
-Failure.prototype.toString = function () {
+Failure.prototype.toString = function toString () {
     let msg = "Failure";
     let it = this.expectation;
     if ( it && it.actual && this.matcherName ) {
@@ -513,7 +500,7 @@ defineMatcher('not', function (options) {
     throw new Failure(this.specification, this, 'not', "not yet implemented");
 });
 
-defineMatcher('toBe', function (expected, options) {
+defineMatcher('toBe', function matchToBe (expected, options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -532,7 +519,7 @@ defineMatcher('toBe', function (expected, options) {
   return this;
 });
 
-defineMatcher('toEqual', function (expected, options) {
+defineMatcher('toEqual', function matchToEqual (expected, options) {
     try {
         Object.assign(this, options || {});
         this.pass = true;
@@ -551,7 +538,7 @@ defineMatcher('toEqual', function (expected, options) {
     return this;
 });
 
-defineMatcher('toBeDefined', function (options) {
+defineMatcher('toBeDefined', function matchToBeDefined (options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -569,7 +556,7 @@ defineMatcher('toBeDefined', function (options) {
   return this;
 });
 
-defineMatcher('toBeUndefined', function (options) {
+defineMatcher('toBeUndefined', function matchToBeUndefined (options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -587,7 +574,7 @@ defineMatcher('toBeUndefined', function (options) {
   return this;
 });
 
-defineMatcher('toBeNull', function (options) {
+defineMatcher('toBeNull', function matchToBeNull (options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -605,7 +592,7 @@ defineMatcher('toBeNull', function (options) {
   return this;
 });
 
-defineMatcher('toBeNaN', function (options) {
+defineMatcher('toBeNaN', function matchToBeNaN (options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -623,7 +610,7 @@ defineMatcher('toBeNaN', function (options) {
   return this;
 });
 
-defineMatcher('toBeTruthy', function (options) {
+defineMatcher('toBeTruthy', function matchToBeTruthy (options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -641,7 +628,7 @@ defineMatcher('toBeTruthy', function (options) {
   return this;
 });
 
-defineMatcher('toBeFalsy', function (options) {
+defineMatcher('toBeFalsy', function matchToBeFalsy (options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -659,14 +646,14 @@ defineMatcher('toBeFalsy', function (options) {
   return this;
 });
 
-defineMatcher('toContain', function (expected, options) {
+defineMatcher('toContain', function matchToContain (expected, options) {
     options = options;   // just to make jshint happy!
     expected = expected; // just to make jshint happy!
     throw new Failure(
         this.specification, this, 'toContain', "not yet implemented");
 });
 
-defineMatcher('toBeLessThan', function (expected, options) {
+defineMatcher('toBeLessThan', function matchToBeLessThan (expected, options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -686,7 +673,8 @@ defineMatcher('toBeLessThan', function (expected, options) {
   return this;
 });
 
-defineMatcher('toBeGreaterThan', function (expected, options) {
+defineMatcher('toBeGreaterThan',
+              function matchToBeGreaterThan (expected, options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -706,7 +694,7 @@ defineMatcher('toBeGreaterThan', function (expected, options) {
   return this;
 });
 
-defineMatcher('toBeBetween', function (min, max, options) {
+defineMatcher('toBeBetween', function matchToBeBetween (min, max, options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -727,7 +715,8 @@ defineMatcher('toBeBetween', function (min, max, options) {
   return this;
 });
 
-defineMatcher('toBeCloseTo', function (expected, precision, options) {
+defineMatcher('toBeCloseTo',
+              function matchToBeCloseTo (expected, precision, options) {
   try {
     if (precision !== 0) {
       precision = precision || 2;
@@ -751,7 +740,7 @@ defineMatcher('toBeCloseTo', function (expected, precision, options) {
   return this;
 });
 
-defineMatcher('toMatch', function (regexp, options) {
+defineMatcher('toMatch', function matchToMatch (regexp, options) {
   try {
     Object.assign(this, options || {});
     this.pass = true;
@@ -770,7 +759,7 @@ defineMatcher('toMatch', function (regexp, options) {
   return this;
 });
 
-defineMatcher('transform', function (transformer) {
+defineMatcher('transform', function matchTransform (transformer) {
     try {
         if ( typeof transformer === 'function' ||
              transformer instanceof Function ) {
@@ -811,7 +800,7 @@ defineMatcher('toBeFunction', function (options) {
   return this;
 });
 
-defineMatcher('toBeA', function (className, options) {
+defineMatcher('toBeA', function matchToBeA (className, options) {
   try {
     Object.assign(this, options || {});
     this.pass = false;
@@ -829,7 +818,7 @@ defineMatcher('toBeA', function (className, options) {
   return this;
 });
 
-defineMatcher('invoke', function () {
+defineMatcher('invoke', function matchInvoke () {
   try {
     this.thunk = this.actual;
     this.actual = undefined;
@@ -843,7 +832,7 @@ defineMatcher('invoke', function () {
   return this;
 });
 
-defineMatcher('toThrow', function () {
+defineMatcher('toThrow', function matchToThrow () {
   try {
     if (this.raisedException) {
       this.pass = true;
@@ -860,7 +849,7 @@ defineMatcher('toThrow', function () {
   return this;
 });
 
-defineMatcher('toNotThrow', function () {
+defineMatcher('toNotThrow', function matchToNotThrow () {
   try {
     if (this.raisedException) {
       this.pass = false;
@@ -894,7 +883,7 @@ defineMatcher('toNotThrow', function () {
 
 */
 
-defineMatcher('eval', function (context, options) {
+defineMatcher('eval', function matchEval (context, options) {
   try {
     this.code = this.actual;
     this.actual = undefined;
@@ -924,21 +913,39 @@ Expectation.prototype.done = function () {
   run_hook(this, 'end');
 };
 
-module.exports = {
-  describe: describe,
-  it:       front_it,
-  expect:   front_expect,
-  fail:     front_fail,
-  message:  message,
-  require:  yasmini_require,
-  // These classes are provided for hooks providers:
-  class: {
-    Description:   Description,
-    Specification: Specification,
-    Expectation:   Expectation,
-    Failure:       Failure
-  }
-};
+// Yasmini may use a specific require function. This will be the case
+// for instance, if yasmini is used within a browser and webpacked.
+// Attention: I could not make UglifyJS respect the exportation of
+// 'require' therefore importers of Yasmini should perform:
+//      let yasmini = require('yasmini');
+//      yasmini.require = yasmini.yasmini_require;
+
+module.exports = (function () {
+    let yasmini_require = function fake_require (moduleName) {
+        throw new Error(`Cannot require ${moduleName}`);
+    };
+    try {
+        // try to grasp the current require if any:
+        yasmini_require = require;
+    } catch (e) {
+        // ignore that error!
+    }
+    return {
+        describe: describe,
+        it:       front_it,
+        expect:   front_expect,
+        fail:     front_fail,
+        message:  message,
+        yasmini_require: yasmini_require,
+        // These classes are provided for hooks providers:
+        class: {
+            Description:   Description,
+            Specification: Specification,
+            Expectation:   Expectation,
+            Failure:       Failure
+        }
+    };
+})();
 module.exports.yasmini = yasmini = module.exports;
 
 // end of yasmini.js
