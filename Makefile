@@ -5,13 +5,20 @@ clean :
 
 # ############## Working rules:
 
-tests : test.with.jasmine test.with.yasmini
+tests : test.with.jasmine test.with.eval test.with.yasmini
 	@echo;echo "    ALL TESTS SUCCESSFUL ";echo
 test.with.jasmine :
 	rm -rf node_modules/yasmini
 	mkdir -p node_modules/yasmini
 	cp -rp example package.json yasmini.js \
 		node_modules/yasmini/
+	jasmine spec/test2-spec.js
+	jasmine spec/verbalize2-spec.js
+test.with.eval : 
+	rm -rf node_modules/yasmini
+	mkdir -p node_modules/yasmini
+	cp -rp example package.json node_modules/yasmini/
+	sed -e "s@'vm'@'vmABSENT'@" < yasmini.js > node_modules/yasmini/yasmini.js
 	jasmine spec/test2-spec.js
 	jasmine spec/verbalize2-spec.js
 test.with.yasmini :

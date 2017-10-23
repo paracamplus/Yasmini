@@ -1,5 +1,5 @@
 // Yasmini: A reflexive test framework
-// Time-stamp: "2017-10-16 15:48:00 queinnec" 
+// Time-stamp: "2017-10-23 15:14:57 queinnec" 
 
 /*
 Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
@@ -25,10 +25,27 @@ CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 */
 
-// Require some node.js modules:
-let vm = require('vm');
-let path = require('path');
-let fs = require('fs');
+// Requirements
+// Yasmini may run in a browser, this 'vm' module emulates the Node.js version:
+let vm;
+(function (evalfn) {
+    function evalfn (code) {
+        code = `${code};`;
+        return eval(code);
+    }
+    let shimvm = {
+        runInContext: evalfn,
+        runInThisContext: evalfn
+    };
+    try {
+        vm = require('vm');
+        if ( Object.keys(vm).length === 0 ) {
+            vm = shimvm;
+        }
+    } catch (e) {
+        vm = shimvm;
+    }
+})();
 let util = require('util');
 let _ = require('lodash');
 var Promise = require('bluebird');
@@ -39,8 +56,8 @@ var yasmini_require;
 try {
     // try to grasp the current require if any:
     yasmini_require = require;
-    yasmini_require = yasmini_require
-        || function fake_require (moduleName) {
+    yasmini_require = yasmini_require ||
+        function fake_require (moduleName) {
             return that.moduleName.exports;
         };
 } catch (e) {
@@ -49,12 +66,12 @@ try {
 
 let message = {
     fr: {
-        notwithinit: "Ne doit être utilisé que dans it() ",
-        notwithindescribe: "Ne doit être utilisé que dans describe() "
+        notwithinit: "expect() ne doit être utilisé que dans it() ",
+        notwithindescribe: "it() ne doit être utilisé que dans describe() "
     },
     en: {
-        notwithinit: "Not within it() ",
-        notwithindescribe: "Not within describe() "
+        notwithinit: "expect() not within it() ",
+        notwithindescribe: "it() not within describe() "
     }
 };
 
@@ -81,25 +98,6 @@ function wrong_fail () {
 var inner_fail = wrong_fail;
 function front_fail () {
     return inner_fail.apply(this, arguments);
-}
-
-/*        DEPRECATED
-* Load utility. The utility file should be stored aside yasmini.js
-* that is, in the same directory. The file is loaded in its own context
-* optionally enriched by some bindings.
-*/
-
-function load (filename, bindings) {
-  let f = path.join(__dirname, filename);
-  let src = fs.readFileSync(f);
-  let newglobal = {
-    yasmini: module.exports,
-    require: yasmini_require,
-    console: console
-  };
-  newglobal = Object.assign(newglobal, bindings || {});
-  vm.runInNewContext(src, newglobal);
-  module.exports.plugins.push(filename);
 }
 
 function run_hook (o, name) {
@@ -931,7 +929,6 @@ module.exports = {
   it:       front_it,
   expect:   front_expect,
   fail:     front_fail,
-  load:     load,
   message:  message,
   require:  yasmini_require,
   // These classes are provided for hooks providers:
@@ -940,18 +937,6 @@ module.exports = {
     Specification: Specification,
     Expectation:   Expectation,
     Failure:       Failure
-  },
-  // record which plugins are yasmini.loaded:
-  plugins: [],
-  // These modules may be useful for yasmini.load-ed files:
-  imports: {
-      module: module,
-      path: path,
-      fs:   fs,
-      vm:   vm,
-      util: util,
-      _:    _,
-      console: console
   }
 };
 module.exports.yasmini = yasmini = module.exports;
