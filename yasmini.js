@@ -1,5 +1,5 @@
 // Yasmini: A reflexive test framework
-// Time-stamp: "2017-10-23 18:10:44 queinnec" 
+// Time-stamp: "2017-10-23 19:45:32 queinnec" 
 
 /*
 Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
@@ -926,10 +926,8 @@ module.exports = (function () {
     };
     try {
         // try to grasp the current require if any:
-        yasmini_require = require;
-    } catch (e) {
-        // ignore that error!
-    }
+        yasmini_require = global.require;
+    } catch (e) { /* ignore that error! */ }
     return {
         describe: describe,
         it:       front_it,
