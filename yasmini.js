@@ -1,5 +1,5 @@
 // Yasmini: A reflexive test framework
-// Time-stamp: "2017-10-23 19:45:32 queinnec" 
+// Time-stamp: "2019-01-11 14:50:54 queinnec" 
 
 /*
 Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
@@ -46,7 +46,13 @@ var vm;
         vm = shimvm;
     }
 })();
-const _ = require('lodash');
+//const _ = require('lodash');
+const _ = (function () {
+    const isNumber = require('lodash/isNumber');
+    const isObject = require('lodash/isObject');
+    const isEqual  = require('lodash/isEqual');
+    return { isNumber, isObject, isEqual };
+})();
 const Promise = require('bluebird');
 let yasmini; // to be defined below
 
@@ -766,7 +772,8 @@ defineMatcher('transform', function matchTransform (transformer) {
             this.actual = transformer(this.actual);
         }
     } catch (exc) {
-        this.raisedException = exc;
+        this.raisedException = true;
+        this.exception = exc;
         this.pass = false;
         if ( this.stopOnFailure ) {
             let exc = new Failure(
