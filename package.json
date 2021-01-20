@@ -1,6 +1,6 @@
 {
   "name": "yasmini",
-  "version": "0.2.29",
+  "version": "0.2.30",
   "engines": {
     "node": ">= 6.5"
   },
@@ -41,14 +41,14 @@
     "test": "make tests"
   },
   "dependencies": {
-    "bluebird": "^3.5.1",
-    "lodash": "^4.17.5"
+    "bluebird": "^3.7.2",
+    "lodash": "^4.17.20"
   },
   "devDependencies": {
-    "eslint": "^4.9.0",
-    "he": "^1.0",
-    "jasmine": "^2.3.4",
-    "jshint": "^2.9.5",
-    "request": "^2.83.0"
+    "eslint": "^4.19.1",
+    "he": "^1.2.0",
+    "jasmine": "^2.99.0",
+    "jshint": "^2.12.0",
+    "request": "^2.88.2"
   }
 }

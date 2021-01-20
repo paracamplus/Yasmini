@@ -1,5 +1,5 @@
 // Yasmini: A reflexive test framework
-// Time-stamp: "2019-01-11 14:50:54 queinnec" 
+// Time-stamp: "2019-01-11 19:03:55 queinnec" 
 
 /*
 Copyright (C) 2016-2017 Christian.Queinnec@CodeGradX.org
